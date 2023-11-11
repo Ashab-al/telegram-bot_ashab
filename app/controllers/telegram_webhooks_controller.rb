@@ -1,17 +1,120 @@
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
+  
+  # bin/rake telegram:bot:poller   запуск бота
 
+  # chat - выдает такие данные 
+  # {"id":377884669,"first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
+  # "username":"AshabAl","type":"private"}
+
+  # from - выдает такие данные 
+  #{"id":377884669,"is_bot":false,
+  #"first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
+  #"username":"AshabAl","language_code":"ru","is_premium":true}
+
+  # payload - выдает такие данные 
+  # {"message_id":335409,"from":{"id":377884669,"is_bot":false,
+  # "first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
+  # "username":"AshabAl","language_code":"ru","is_premium":true},
+  # "chat":{"id":377884669,
+  # "first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
+  # "username":"AshabAl","type":"private"},
+  # "date":1698134713,"text":"asd"}
+  
+  # session[:user]
   def start!(*)
-    respond_with :message, text: t('.content')
+    @user = User.find_by_platform_id(payload["from"]["id"])
+    if @user
+      session[:user] = @user 
+    else
+      @user = User.new(user_params(payload))
+      if @user.save
+        respond_with :message, text: "Создан пользователь"
+        @user.category.new({:cat_1 => 0, :cat_2 => 0}).save
+        
+      else
+        respond_with :message, text: "Вы не сохранились в бд"
+      end
+    end
+    
+    menu()
+  end
+
+  def main_menu!
+    menu()
+  end
+
+  def menu(value = nil, *)
+    save_context :menu
+    # respond_with :message, text: "Это главное меню чат-бота", reply_markup: {
+    #   inline_keyboard: [
+    #     [
+    #       {text: "Выбрать категории", callback_data: 'Выбрать категории'}
+    #     ],
+    #     [
+    #       {text: "Канал автора", url: 'https://t.me/asxabal'}
+    #     ]
+    #   ]
+    # }
+
+    case value
+    when "Категории"
+      choice_category()
+    when "Реклама"
+      marketing()
+    else
+      respond_with :message, text: "Это главное меню чат-бота", reply_markup: {
+        keyboard: [["Категории 🧲", "Поинты 💎", "Помощь ⚙️"], ["Реклама ✨"]],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+        selective: true,
+      }
+    end
+  end
+
+  def marketing
+    respond_with :message, text: "Всего количество пользователей в боте: #{User.all.size}"
+  end
+
+  def choice_category
+    respond_with :message, text: "Выберите категории", reply_markup: {
+      inline_keyboard: [
+        [
+          {text: "Тех-спец 🪫", callback_data: 'no_alert'},
+          {text: "Сайты 🪫", callback_data: 'no_alert'}
+        ],
+        [
+          {text: "Таргет 🪫", callback_data: 'no_alert'},
+          {text: "Копирайт 🪫", callback_data: 'no_alert'}
+        ],
+        [
+          {text: "Дизайн 🪫", callback_data: 'no_alert'},
+          {text: "Ассистент 🪫", callback_data: 'no_alert'}
+        ],
+        [
+          {text: "Маркетинг 🪫", callback_data: 'no_alert'},
+          {text: "Продажи 🪫", callback_data: 'no_alert'}
+        ]
+      ],
+    }
   end
 
   def help!(*)
     respond_with :message, text: t('.content')
   end
 
+  def test!(*args)
+    # save_context :test!
+    respond_with :message, text: payload
+    p session[:user] #<User id: 2, name: "Асхаб Алхазуров | Чат-боты | Python | Ruby", username: "AshabAl", email: nil, phone: nil, platform_id: 377884669, created_at: "2023-11-11 15:20:49.468134000 +0000", updated_at: "2023-11-11 15:20:49.468134000 +0000">
+
+  end
+
   def memo!(*args)
     if args.any?
       session[:memo] = args.join(' ')
+      puts session[:memo]
+      p session
       respond_with :message, text: t('.notice')
     else
       respond_with :message, text: t('.prompt')
@@ -37,6 +140,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         selective: true,
       }
     end
+    p [t('.buttons')]
   end
 
   def inline_keyboard!(*)
@@ -52,9 +156,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def callback_query(data)
-    if data == 'alert'
-      answer_callback_query t('.alert'), show_alert: true
-    else
+    case data
+    when 'alert'
+      answer_callback_query "data", show_alert: true
+    when 'Выбрать категории'
+      choice_category()
+    when 'no_alert'
       answer_callback_query t('.no_alert')
     end
   end
@@ -101,5 +208,35 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       respond_with :message,
         text: t('telegram_webhooks.action_missing.command', command: action_options[:command])
     end
+  end
+
+  def rename!(*)
+    # set context for the next message
+    save_context :rename_from_message
+    respond_with :message, text: 'What name do you like?'
+  end
+
+  # register context handlers to handle this context
+  def rename_from_message(message)
+    
+    respond_with :message, text: "Renamed! #{message}"
+  end
+
+  
+
+  private
+
+  # In this case session will persist for user only in specific chat.
+  # Same user in other chat will have different session.
+  def session_key
+    "#{bot.username}:#{chat['id']}:#{from['id']}" if chat && from
+  end
+
+  def user_params(data)
+    {
+      :username => data["from"]["username"],
+      :platform_id => data["from"]["id"],
+      :name => data["from"]["first_name"]
+    }
   end
 end

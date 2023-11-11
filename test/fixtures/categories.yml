@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  tech_spets: 1
+  site: 1
+  target: 1
+  copyright: 1
+  design: 1
+  assistant: 1
+  marketing: 1
+  sales: 1
+
+two:
+  tech_spets: 1
+  site: 1
+  target: 1
+  copyright: 1
+  design: 1
+  assistant: 1
+  marketing: 1
+  sales: 1
