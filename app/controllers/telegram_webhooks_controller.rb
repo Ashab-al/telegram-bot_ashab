@@ -1,6 +1,6 @@
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
-  
+  before_action :load_user # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные 
@@ -23,20 +23,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   # session[:user]
   def start!(*)
-    @user = User.find_by_platform_id(payload["from"]["id"])
-    if @user
-      session[:user] = @user 
-    else
+    unless @user
       @user = User.new(user_params(payload))
       if @user.save
-        respond_with :message, text: "Создан пользователь"
-        @user.category.new({:cat_1 => 0, :cat_2 => 0}).save
-        
+        @user.category.new(category_defolt_params).save
       else
         respond_with :message, text: "Вы не сохранились в бд"
       end
-    end
-    
+    end 
+ 
     menu()
   end
 
@@ -46,16 +41,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def menu(value = nil, *)
     save_context :menu
-    # respond_with :message, text: "Это главное меню чат-бота", reply_markup: {
-    #   inline_keyboard: [
-    #     [
-    #       {text: "Выбрать категории", callback_data: 'Выбрать категории'}
-    #     ],
-    #     [
-    #       {text: "Канал автора", url: 'https://t.me/asxabal'}
-    #     ]
-    #   ]
-    # }
 
     case value
     when "Категории"
@@ -77,6 +62,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def choice_category
+    
+
     respond_with :message, text: "Выберите категории", reply_markup: {
       inline_keyboard: [
         [
@@ -226,6 +213,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   private
 
+  def load_user
+    @user = User.find_by_platform_id(payload["from"]["id"])
+    @user_category = @user.category.first
+    respond_with :message, text: "Пользователь найден!"
+  end
+
   # In this case session will persist for user only in specific chat.
   # Same user in other chat will have different session.
   def session_key
@@ -237,6 +230,19 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       :username => data["from"]["username"],
       :platform_id => data["from"]["id"],
       :name => data["from"]["first_name"]
+    }
+  end
+
+  def category_defolt_params
+    {
+      :tech_spets => 0,
+      :site => 0,
+      :target => 0,
+      :copyright => 0,
+      :design => 0,
+      :assistant => 0,
+      :marketing => 0,
+      :sales => 0
     }
   end
 end
