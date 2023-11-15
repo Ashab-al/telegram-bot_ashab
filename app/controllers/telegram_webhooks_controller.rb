@@ -24,15 +24,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   # session[:user]
   def start!(*)
-    unless @user
-      @user = User.new(user_params(payload))
-      if @user.save
-        # @user.category.new(category_defolt_params).save
-        p "GOOD"
-      else
-        respond_with :message, text: "Вы не сохранились в бд"
-      end
-    end 
+    
 
     # p @category = Category.all[1]
     # Subscription.create(user: @user, category: @category).save
@@ -72,9 +64,16 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def marketing
-    respond_with :message, text: "Всего количество пользователей в боте: #{User.all.size}\n"+
-                                 "Выбраны направления:\n" + 
-                                 "Тех-спец: #{Category.all[0].user.size}"
+    respond_with :message, text: "Всего количество пользователей в боте: #{User.all.size}\n\n"+
+                                 "Активные направления:\n" + 
+                                 "1. Тех-спец: #{Category.all[0].user.size}\n" +
+                                 "2. Сайты: #{Category.all[1].user.size}\n" +
+                                 "3. Таргет: #{Category.all[2].user.size}\n" +
+                                 "4. Копирайт: #{Category.all[3].user.size}\n" +
+                                 "5. Дизайн: #{Category.all[4].user.size}\n" +
+                                 "6. Ассистент: #{Category.all[5].user.size}\n" +
+                                 "7. Маркетинг: #{Category.all[6].user.size}\n" +
+                                 "8. Продажи: #{Category.all[7].user.size}\n" 
   end
 
   def choice_category
@@ -148,43 +147,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def callback_query(data)
+    category = Category.find_by(name: data)
+    checking_subscribed_category(category.id) if category
+
     case data
     when 'alert'
       answer_callback_query "data", show_alert: true
     when 'Выбрать категории'
       choice_category()
-
-    when 'Тех-спец'
-      checking_subscribed_category(0)
-      edit_message_category
-
-    when 'Сайты'
-      checking_subscribed_category(1)
-      edit_message_category
-
-    when 'Таргет'
-      checking_subscribed_category(2)
-      edit_message_category
-
-    when 'Копирайт'
-      checking_subscribed_category(3)
-      edit_message_category
-
-    when 'Дизайн'
-      checking_subscribed_category(4)
-      edit_message_category
-
-    when 'Ассистент'
-      checking_subscribed_category(5)
-      edit_message_category
-    when 'Маркетинг'
-      checking_subscribed_category(6)
-      edit_message_category
-    when 'Продажи'
-      checking_subscribed_category(7)
-      edit_message_category
-    # when 'no_alert'
-    #   answer_callback_query t('.no_alert')
     end
   end
 
@@ -221,6 +191,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def load_user
     @user = User.find_by_platform_id(payload["from"]["id"])
+    unless @user
+      @user = User.new(user_params(payload))
+      if @user.save
+        # @user.category.new(category_defolt_params).save
+        p "GOOD"
+      else
+        respond_with :message, text: "Вы не сохранились в бд"
+      end
+    end 
     subscriptions = @user.subscriptions.includes(:category)
     @subscribed_categories = subscriptions.map(&:category)
   end
@@ -262,16 +241,25 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def checking_subscribed_category(category_id)
-    all_category = Category.all
-    unless @subscribed_categories.include?(all_category[category_id])
-      Subscription.create(user: @user, category: all_category[category_id])
+    target_category = Category.find(category_id)
+  
+    if @subscribed_categories.include?(target_category)
+      unsubscribe_user_from_category(target_category)
+      edit_message_category
     else
-      @user.subscriptions.each {|user_subscriptions|
-        if user_subscriptions.category == all_category[category_id]
-          user_subscriptions.destroy
-        end
-      }
+      subscribe_user_to_category(target_category)
+      edit_message_category
     end
+  end
+  
+  private
+  
+  def subscribe_user_to_category(category)
+    @user.subscriptions.create(category: category)
+  end
+  
+  def unsubscribe_user_from_category(category)
+    p @user.subscriptions.find_by(category: category)&.destroy
   end
 
   def user_params(data)
