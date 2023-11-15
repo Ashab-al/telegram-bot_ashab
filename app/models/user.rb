@@ -1,5 +1,7 @@
 class User < ApplicationRecord
-  has_many :category, dependent: :destroy
+  has_many :subscriptions, dependent: :destroy
+  has_many :category, through: :subscriptions
+
 
   validates :username, uniqueness: true, 
                        allow_blank: true
