@@ -1,6 +1,6 @@
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
-  include Telegram::Bot::UpdatesController::ReplyHelpers
+
   before_action :load_user # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
@@ -24,20 +24,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   # session[:user]
   def start!(*)
-    
-
-    # p @category = Category.all[1]
-    # Subscription.create(user: @user, category: @category).save
-    # Category.all.each {|cat| 
-    #   p @user.subscriptions.all.include?(cat.subscriptions[0])
-    # }
-    res = respond_with :message, text: "Это главное меню чат-бота"
-    p res
-
-    bot.edit_message_text(text: "Новый текст", 
-                          message_id: res["result"]["message_id"],
-                          chat_id: res["result"]["chat"]["id"],
-                          reply_markup: formation_of_category_buttons())
     menu()
   end
 
@@ -50,9 +36,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     case value
     when "Категории"
-      choice_category()
+      choice_category
     when "Реклама"
-      marketing()
+      marketing
+      menu
+    when "Помощь"
+      choice_help
+      menu
     else
       respond_with :message, text: "Это главное меню чат-бота", reply_markup: {
         keyboard: [["Категории 🧲", "Поинты 💎", "Помощь ⚙️"], ["Реклама ✨"]],
@@ -63,17 +53,30 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
+  def choice_help
+    respond_with :message, text: "👉⚡️ Инструкция:\n\n" +
+                                 "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" +
+                                 "2️⃣ Выбери свою область 💼\n" +
+                                 "🔹 Получай интересные предложения мгновенно\n\n" +
+                                 "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" +
+                                 "🔹 Поинты - валюта для доступа к контактам ⚜️\n" +
+                                 "🔹 Ежедневно 2 бесплатных поинта\n\n" +
+                                 "Готовы к новым возможностям? \"Категории 🧲\" - и вперёд!"
+  end
+
   def marketing
-    respond_with :message, text: "Всего количество пользователей в боте: #{User.all.size}\n\n"+
+    respond_with :message, text: "(Еще в разработке)\n\n" + 
+                                 "Общее количество пользователей в боте: #{User.all.size} 🤝\n\n"+
                                  "Активные направления:\n" + 
-                                 "1. Тех-спец: #{Category.all[0].user.size}\n" +
-                                 "2. Сайты: #{Category.all[1].user.size}\n" +
-                                 "3. Таргет: #{Category.all[2].user.size}\n" +
-                                 "4. Копирайт: #{Category.all[3].user.size}\n" +
-                                 "5. Дизайн: #{Category.all[4].user.size}\n" +
-                                 "6. Ассистент: #{Category.all[5].user.size}\n" +
-                                 "7. Маркетинг: #{Category.all[6].user.size}\n" +
-                                 "8. Продажи: #{Category.all[7].user.size}\n" 
+                                 "1. Тех-спец: #{Category.all[0].user.size} 👨‍💻\n" +
+                                 "2. Сайты: #{Category.all[1].user.size} 🌐\n" +
+                                 "3. Таргет: #{Category.all[2].user.size} 🚀\n" +
+                                 "4. Копирайт: #{Category.all[3].user.size} 📝\n" +
+                                 "5. Дизайн: #{Category.all[4].user.size} 🎨\n" +
+                                 "6. Ассистент: #{Category.all[5].user.size} 🤖\n" +
+                                 "7. Маркетинг: #{Category.all[6].user.size} 📣\n" +
+                                 "8. Продажи: #{Category.all[7].user.size} 💼\n\n" +
+                                 "Вместе мы сила! 💪"
   end
 
   def choice_category
@@ -178,7 +181,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
 
   def message(message)
-    respond_with :message, text: t('.content', text: message['text'])
+    menu()
   end
 
   # register context handlers to handle this context
