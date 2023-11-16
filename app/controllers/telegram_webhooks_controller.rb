@@ -43,6 +43,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when "Помощь"
       choice_help
       menu
+    when "Поинты"
     else
       respond_with :message, text: "Это главное меню чат-бота", reply_markup: {
         keyboard: [["Категории 🧲", "Поинты 💎", "Помощь ⚙️"], ["Реклама ✨"]],
@@ -51,6 +52,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         selective: true,
       }
     end
+  end
+
+  def points
+    
   end
 
   def choice_help
