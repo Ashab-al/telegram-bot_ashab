@@ -28,6 +28,10 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 gem "telegram-bot", "~> 0.15.5"
 
+# My gems
+gem 'sidekiq'
+# end
+
 group :pry do
   gem "awesome_print"
   gem "pry"

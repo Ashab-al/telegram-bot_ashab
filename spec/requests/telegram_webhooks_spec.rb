@@ -64,7 +64,7 @@ RSpec.describe TelegramWebhooksController, telegram_bot: :rails do
   describe '#chosen_inline_result' do
     subject { -> { dispatch(chosen_inline_result: payload) } }
     let(:fetch) { -> { dispatch_command :last_chosen_inline_result } }
-    let(:payload) { {from: {id: 123}, result_id: 456} }
+    let(:payload) { { from: { id: 123 }, result_id: 456 } }
 
     it 'memoizes chosen_inline_result' do
       expect(&fetch).to respond_with_message 'Mention me to initiate inline query'
@@ -85,7 +85,7 @@ RSpec.describe TelegramWebhooksController, telegram_bot: :rails do
   end
 
   context 'for unsupported feature' do
-    subject { -> { dispatch time_travel: {back_to: :the_future} } }
+    subject { -> { dispatch time_travel: { back_to: :the_future } } }
     it 'does nothing' do
       subject.call
       expect(response).to be_ok
