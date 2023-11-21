@@ -60,8 +60,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def points
     respond_with :message,
                  text: "#{from['first_name']}\n\n" \
-                       "🔍 Ваш баланс: 0 отк\n" \
-                       "🎁 Бонусные: 2 отк.\n\n" \
+                       "🔍 Ваш баланс: #{@user.point} отк\n" \
+                       "🎁 Бонусные: #{@user.bonus} отк.\n\n" \
                        '(Две бонусные открывашки предоставляются бесплатно каждые 24 часа)',
                  reply_markup: {
                    inline_keyboard: [[{ text: 'Купить открывашки (не дорого)',
@@ -69,11 +69,40 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                  }
   end
 
-  def buy_points
-    respond_with :message,
-                 text: "🔍 Твой баланс: 0 отк\n" \
-                       "🎁 Бонусные: 2 отк.\n\n" \
-                       '(Две бонусные открывашки предоставляются бесплатно каждые 24 часа)'
+  def get_the_mail(*args)
+    save_context :get_the_mail 
+    if args.any?
+      session[:email] = args.first
+      get_the_mail_message = respond_with :message, 
+                   text: "Ваша почта: #{args.first}",
+                   reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
+                                                    [{ text: 'Все четко✅', callback_data: 'Все четко' }]]
+                                                  }
+      session[:get_the_mail_message_id] = get_the_mail_message['result']['message_id']
+      session[:get_the_mail_chat_id] = get_the_mail_message['result']['chat']['id']                                            
+                                           
+    elsif @user.email
+      respond_with :message,
+      text: "Вот ссылка на оплату открывашек"
+    else 
+      respond_with :message,
+      text: "Напишите свою почту в этот чат"
+    end
+  end
+
+  def choice_tarif
+    bot.edit_message_text text: "Ваша почта: #{session[:email]}\n\n" \
+                                "Выберите тариф",
+                          message_id: session[:get_the_mail_message_id] ,
+                          chat_id: session[:get_the_mail_chat_id],
+                          reply_markup: {
+                            inline_keyboard: [
+                              [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов - 100' }],
+                              [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов - 400' }]
+                            ]
+                          }      
+    RestClient.get 'https://api.telegram.org/bot5127742801:AAHNyXy90gXJlzOWNLF67O5CZjlYlM3Y-0g/НАЗВАНИЕ_МЕТОДА', 
+                    {params: {id: 50, 'foo' => 'bar'}}        
   end
 
   def choice_help
@@ -160,7 +189,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Выбрать категории'
       choice_category
     when 'Купить открывашки (не дорого)'
-      buy_points
+      get_the_mail
+    when 'Поменять почту'
+      get_the_mail
+    when 'Все четко'
+      choice_tarif
     end
   end
 
