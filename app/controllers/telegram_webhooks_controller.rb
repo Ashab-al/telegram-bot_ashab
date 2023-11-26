@@ -30,6 +30,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def main_menu!
+    p default_url_options[:locale]
     menu
   end
 
@@ -97,12 +98,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                           chat_id: session[:get_the_mail_chat_id],
                           reply_markup: {
                             inline_keyboard: [
-                              [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов - 100' }],
-                              [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов - 400' }]
+                              [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
+                              [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }]
                             ]
                           }      
-    RestClient.get 'https://api.telegram.org/bot5127742801:AAHNyXy90gXJlzOWNLF67O5CZjlYlM3Y-0g/НАЗВАНИЕ_МЕТОДА', 
-                    {params: {id: 50, 'foo' => 'bar'}}        
+    # RestClient.get 'https://api.telegram.org/bot5127742801:AAHNyXy90gXJlzOWNLF67O5CZjlYlM3Y-0g/НАЗВАНИЕ_МЕТОДА', 
+    #                 {params: {id: 50, 'foo' => 'bar'}}        
   end
 
   def choice_help
@@ -288,5 +289,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       point: 0,
       bonus: 2
     }
+  end
+
+  def default_url_options
+    { locale: "http://www.example.com/" }
   end
 end
