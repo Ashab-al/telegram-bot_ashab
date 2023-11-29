@@ -29,7 +29,8 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 gem "telegram-bot", "~> 0.15.5"
 
 # My gems
-gem 'sidekiq'
+gem 'rest-client'
+gem 'yookassa'
 # end
 
 group :pry do

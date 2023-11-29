@@ -2,7 +2,7 @@
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
-
+  
   before_action :load_user # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
@@ -27,6 +27,40 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   # session[:user]
   def start!(*)
     menu
+  end
+
+  def test!
+    payload = {
+      amount: {
+          value:    10,
+          currency: 'RUB'
+      },
+      capture:      true,
+      confirmation: {
+          type:       'redirect',
+          return_url: 'https://yookassa.ru/'
+      },
+      receipt: {
+        customer: {
+          email: "asxabal7@gmail.com"
+        },
+        items: [
+          {
+            "description": "Ложка",
+            "quantity": "1",
+            "amount": {
+              "value": "10.00",
+              "currency": "RUB"
+            },
+            "vat_code": "1"
+          }
+        ]
+      }
+    }
+
+    payment = Yookassa.payments.create(payment: payload)
+    p payment.confirmation.confirmation_url
+    respond_with :message, text: "#{payment.confirmation.confirmation_url}"
   end
 
   def main_menu!
@@ -74,13 +108,19 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     save_context :get_the_mail 
     if args.any?
       session[:email] = args.first
-      get_the_mail_message = respond_with :message, 
+      case session[:email]
+        when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
+          get_the_mail_message = respond_with :message, 
                    text: "Ваша почта: #{args.first}",
                    reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
-                                                    [{ text: 'Все четко✅', callback_data: 'Все четко' }]]
-                                                  }
-      session[:get_the_mail_message_id] = get_the_mail_message['result']['message_id']
-      session[:get_the_mail_chat_id] = get_the_mail_message['result']['chat']['id']                                            
+                                                    [{ text: 'Все четко✅', callback_data: 'Все четко' }]]}
+          session[:get_the_mail_message_id] = get_the_mail_message['result']['message_id']
+          session[:get_the_mail_chat_id] = get_the_mail_message['result']['chat']['id'] 
+        else  
+          respond_with :message,
+                        text: "Некорректная почта. Напишите еще раз"
+      end
+                                                 
                                            
     elsif @user.email
       respond_with :message,
@@ -144,42 +184,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     session[:chat_id] = category_send_message['result']['chat']['id']
   end
 
-  def memo!(*args)
-    if args.any?
-      session[:memo] = args.join(' ')
-      respond_with :message, text: t('.notice')
-    else
-      respond_with :message, text: t('.prompt')
-      save_context :memo!
-    end
-  end
-
-  def keyboard!(value = nil, *)
-    if value
-      respond_with :message, text: t('.selected', value: value)
-    else
-      save_context :keyboard!
-      respond_with :message, text: t('.prompt'), reply_markup: {
-        keyboard: [t('.buttons')],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-        selective: true
-      }
-    end
-  end
-
-  def inline_keyboard!(*)
-    respond_with :message, text: t('.prompt'), reply_markup: {
-      inline_keyboard: [
-        [
-          { text: t('.alert'), callback_data: 'alert' },
-          { text: t('.no_alert'), callback_data: 'no_alert' }
-        ],
-        [{ text: t('.repo'), url: 'https://github.com/telegram-bot-rb/telegram-bot' }]
-      ]
-    }
-  end
-
   def callback_query(data)
     category = Category.find_by(name: data)
     checking_subscribed_category(category.id) if category
@@ -194,6 +198,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Поменять почту'
       get_the_mail
     when 'Все четко'
+      @user.update({:email => session[:email]})
       choice_tarif
     end
   end
