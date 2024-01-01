@@ -31,6 +31,8 @@ gem "telegram-bot", "~> 0.15.5"
 # My gems
 gem 'rest-client'
 gem 'yookassa'
+gem 'webpacker'
+gem "tailwindcss-rails", "~> 2.1"
 # end
 
 group :pry do
@@ -63,3 +65,5 @@ group :test do
   gem "rspec-rails"
   gem "rspec-its"
 end
+
+

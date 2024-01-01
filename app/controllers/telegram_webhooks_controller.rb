@@ -25,8 +25,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   # "date":1698134713,"text":"asd"}
 
   # session[:user]
+
   def start!(*)
     menu
+  end
+
+  def send_custom_message(message_text, chat_id)
+    respond_with :message, text: message_text, chat_id: chat_id
   end
 
   def test!
@@ -159,8 +164,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def marketing
     respond_with :message, text: "(Еще в разработке)\n\n" \
-                                 "Общее количество пользователей в боте: #{User.all.size} 🤝\n\n" \
-                                 "Активные направления:\n" \
+                                 "Количество пользователей в боте:\n\n" \
                                  "1. Тех-спец: #{Category.all[0].user.size} 👨‍💻\n" \
                                  "2. Сайты: #{Category.all[1].user.size} 🌐\n" \
                                  "3. Таргет: #{Category.all[2].user.size} 🚀\n" \
@@ -298,5 +302,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def default_url_options
     { locale: "http://www.example.com/" }
+  end
+
+  def session_key
+    "#{bot.username}:#{from ? "from:#{from['id']}" : "chat:#{chat['id']}"}"
   end
 end
