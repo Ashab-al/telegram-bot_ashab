@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_22_210205) do
+ActiveRecord::Schema[7.0].define(version: 2024_01_01_150719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -39,6 +39,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_22_210205) do
     t.datetime "updated_at", null: false
     t.integer "point"
     t.integer "bonus"
+  end
+
+  create_table "vacancies", force: :cascade do |t|
+    t.string "category_title"
+    t.string "title"
+    t.text "description"
+    t.text "contact_information"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "subscriptions", "categories"
