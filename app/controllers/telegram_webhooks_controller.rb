@@ -186,6 +186,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     session[:category_message_id] = category_send_message['result']['message_id']
     session[:chat_id] = category_send_message['result']['chat']['id']
+    p 
   end
 
   def callback_query(data)
@@ -204,6 +205,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Все четко'
       @user.update({:email => session[:email]})
       choice_tarif
+    when /mid_\d+_bdid_\d+/
+      data_scan = data.scan(/\d+/)
+      # respond_with :message,
+      #             text: "#{data_scan}"
+      
+      open_a_vacancy({
+        :message_id => data_scan[0],
+        :vacancy_id => data_scan[1] 
+      })
     end
   end
 
@@ -227,38 +237,36 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     @subscribed_categories = subscriptions.map(&:category)
   end
 
+  def user_params(data)
+    {
+      username: data['from']['username'],
+      platform_id: data['from']['id'],
+      name: data['from']['first_name'],
+      point: 0,
+      bonus: 2
+    }
+  end
+
   def formation_of_category_buttons
     subscriptions = @user.subscriptions.includes(:category)
     @subscribed_categories = subscriptions.map(&:category)
     all_category = Category.all
-    {
-      inline_keyboard: [
-        [
-          { text: "Тех-спец #{@subscribed_categories.include?(all_category[0]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Тех-спец' },
-          { text: "Сайты #{@subscribed_categories.include?(all_category[1]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Сайты' }
-        ],
-        [
-          { text: "Таргет #{@subscribed_categories.include?(all_category[2]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Таргет' },
-          { text: "Копирайт #{@subscribed_categories.include?(all_category[3]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Копирайт' }
-        ],
-        [
-          { text: "Дизайн #{@subscribed_categories.include?(all_category[4]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Дизайн' },
-          { text: "Ассистент #{@subscribed_categories.include?(all_category[5]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Ассистент' }
-        ],
-        [
-          { text: "Маркетинг #{@subscribed_categories.include?(all_category[6]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Маркетинг' },
-          { text: "Продажи #{@subscribed_categories.include?(all_category[7]) ? '🔋' : "\u{1FAAB}"}",
-            callback_data: 'Продажи' }
-        ]
-      ]
-    }
+    
+    buttons = []
+    couple_button = []
+    all_category.each do | category |
+      couple_button << {
+        text: "#{category.name} #{@subscribed_categories.include?(category) ? '🔋' : "\u{1FAAB}"}",
+        callback_data: "#{category.name}"
+      }
+
+      if couple_button.size == 2 || category == all_category.last
+        buttons << couple_button
+        couple_button = []
+      end
+    end
+
+    {inline_keyboard: buttons}
   end
 
   def edit_message_category
@@ -267,7 +275,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                 "🔋 - означает что категория выбрана\n" \
                                 "\u{1FAAB} - означает что категория НЕ выбрана",
                           message_id: session[:category_message_id],
-                          chat_id: session[:chat_id],
+                          chat_id: chat["id"],
                           reply_markup: formation_of_category_buttons)
   end
 
@@ -290,14 +298,24 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     @user.subscriptions.find_by(category: category)&.destroy
   end
 
-  def user_params(data)
-    {
-      username: data['from']['username'],
-      platform_id: data['from']['id'],
-      name: data['from']['first_name'],
-      point: 0,
-      bonus: 2
-    }
+  def open_a_vacancy(data)
+    vacancy = Vacancy.find(data[:vacancy_id])
+    text_formation = "Категория: #{vacancy.category_title}\n\n" \
+                     "#{vacancy.description}\n\n" \
+                     "Контакты:\n" \
+                     "#{vacancy.contact_information}"
+    p vacancy
+
+    if @user.bonus > 0
+      bot.edit_message_text(text: text_formation,
+                          message_id: data[:message_id],
+                          chat_id: chat["id"],
+                          reply_markup: {})
+    elsif @user.point > 0
+      nil
+    else
+      nil
+    end
   end
 
   def default_url_options
