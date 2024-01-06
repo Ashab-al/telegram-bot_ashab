@@ -34,10 +34,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     respond_with :message, text: message_text, chat_id: chat_id
   end
 
-  def test!
-    payload = {
+  def create_payment(data)
+    pay_data = {
       amount: {
-          value:    10,
+          value:    data[:cost],
           currency: 'RUB'
       },
       capture:      true,
@@ -47,14 +47,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       },
       receipt: {
         customer: {
-          email: "asxabal7@gmail.com"
+          email: "#{data[:email]}"
         },
         items: [
           {
-            "description": "Ложка",
+            "description": "#{data[:description]}",
             "quantity": "1",
             "amount": {
-              "value": "10.00",
+              "value": "#{data[:cost]}",
               "currency": "RUB"
             },
             "vat_code": "1"
@@ -63,8 +63,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       }
     }
 
-    payment = Yookassa.payments.create(payment: payload)
+    payment = Yookassa.payments.create(payment: pay_data)
+    puts "=========== СОЗДАНИЕ ПЛАТЕЖА ============="
     p payment.confirmation.confirmation_url
+    p payment.confirmation
+    p payment
+    
     respond_with :message, text: "#{payment.confirmation.confirmation_url}"
   end
 
@@ -100,12 +104,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def points
     respond_with :message,
                  text: "#{from['first_name']}\n\n" \
-                       "🔍 Ваш баланс: #{@user.point} отк\n" \
-                       "🎁 Бонусные: #{@user.bonus} отк.\n\n" \
-                       '(Две бонусные открывашки предоставляются бесплатно каждые 24 часа)',
+                       "🔍 Ваш баланс: #{@user.point} \n" \
+                       "🎁 Бонусные: #{@user.bonus} \n\n" \
+                       '(Два бонусных поинта предоставляются бесплатно каждые 24 часа)',
                  reply_markup: {
-                   inline_keyboard: [[{ text: 'Купить открывашки (не дорого)',
-                                        callback_data: 'Купить открывашки (не дорого)' }]]
+                   inline_keyboard: [[{ text: 'Купить поинты',
+                                        callback_data: 'Купить поинты' }]]
                  }
   end
 
@@ -163,17 +167,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def marketing
+    text = ""
+    Category.all.each_with_index do |category, index|
+      text += "#{index+1}. #{category.name}: #{category.user.size}\n"
+    end
+    puts text
     respond_with :message, text: "(Еще в разработке)\n\n" \
-                                 "Количество пользователей в боте:\n\n" \
-                                 "1. Тех-спец: #{Category.all[0].user.size} 👨‍💻\n" \
-                                 "2. Сайты: #{Category.all[1].user.size} 🌐\n" \
-                                 "3. Таргет: #{Category.all[2].user.size} 🚀\n" \
-                                 "4. Копирайт: #{Category.all[3].user.size} 📝\n" \
-                                 "5. Дизайн: #{Category.all[4].user.size} 🎨\n" \
-                                 "6. Ассистент: #{Category.all[5].user.size} 🤖\n" \
-                                 "7. Маркетинг: #{Category.all[6].user.size} 📣\n" \
-                                 "8. Продажи: #{Category.all[7].user.size} 💼\n\n" \
-                                 'Вместе мы сила! 💪'
+                                 "Количество пользователей в боте:\n" + text                             
   end
 
   def choice_category
@@ -185,8 +185,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                          reply_markup: formation_of_category_buttons
 
     session[:category_message_id] = category_send_message['result']['message_id']
-    session[:chat_id] = category_send_message['result']['chat']['id']
-    p 
   end
 
   def callback_query(data)
@@ -194,11 +192,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     checking_subscribed_category(category.id) if category
 
     case data
-    when 'alert'
-      answer_callback_query 'data', show_alert: true
+    # when 'alert'
+    #   answer_callback_query 'data', show_alert: true
     when 'Выбрать категории'
       choice_category
-    when 'Купить открывашки (не дорого)'
+    when 'Купить поинты'
       get_the_mail
     when 'Поменять почту'
       get_the_mail
@@ -207,12 +205,18 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       choice_tarif
     when /mid_\d+_bdid_\d+/
       data_scan = data.scan(/\d+/)
-      # respond_with :message,
-      #             text: "#{data_scan}"
-      
-      open_a_vacancy({
-        :message_id => data_scan[0],
-        :vacancy_id => data_scan[1] 
+      open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+    when '20 поинтов'
+      create_payment({
+        :cost => 10.00,
+        :email => @user.email,
+        :description => "20 поинтов"
+      })
+    when '100 поинтов'
+      create_payment({
+        :cost => 10.00,
+        :email => @user.email,
+        :description => "100 поинтов"
       })
     end
   end
@@ -304,18 +308,26 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                      "#{vacancy.description}\n\n" \
                      "Контакты:\n" \
                      "#{vacancy.contact_information}"
-    p vacancy
 
     if @user.bonus > 0
-      bot.edit_message_text(text: text_formation,
-                          message_id: data[:message_id],
+      update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id])
+    elsif @user.point > 0
+      update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id])
+    else
+      answer_callback_query "У вас закончились поинты \u{1FAAB}\n\n" \
+                            "Покупка поинтов - выгодное вложение!" \
+                            "💎 Бонусный счет: #{@user.bonus}\n" \
+                            "💎 Платный счет: #{@user.point}\n", 
+                            show_alert: true
+    end
+  end
+
+  def update_point_send_messag(text, data, message_id)
+    bot.edit_message_text(text: text,
+                          message_id: message_id,
                           chat_id: chat["id"],
                           reply_markup: {})
-    elsif @user.point > 0
-      nil
-    else
-      nil
-    end
+    @user.update(data)
   end
 
   def default_url_options
