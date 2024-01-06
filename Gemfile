@@ -9,7 +9,7 @@ gem "rails", "~> 7.0.2", ">= 7.0.2.3"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.5.4"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 5.6"
@@ -33,6 +33,7 @@ gem 'rest-client'
 gem 'yookassa'
 gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
+gem 'tomo'
 # end
 
 group :pry do

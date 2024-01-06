@@ -259,6 +259,7 @@ GEM
       httpclient (~> 2.7)
     thor (1.2.1)
     timeout (0.3.0)
+    tomo (1.18.2)
     turbo-rails (1.1.1)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
@@ -294,7 +295,7 @@ DEPENDENCIES
   awesome_print
   debug
   importmap-rails
-  pg (~> 1.1)
+  pg (~> 1.5.4)
   pry
   pry-byebug
   pry-doc
@@ -310,6 +311,7 @@ DEPENDENCIES
   stimulus-rails
   tailwindcss-rails (~> 2.1)
   telegram-bot (~> 0.15.5)
+  tomo
   turbo-rails
   tzinfo-data
   web-console

@@ -36,6 +36,7 @@
 
 spec/examples.txt
 config/secrets.yml
+config/database.yml
 
 /config/credentials/production.key
 
