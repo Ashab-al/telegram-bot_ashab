@@ -7,6 +7,8 @@ WORKDIR /chatbottg
 COPY Gemfile /chatbottg/Gemfile
 COPY Gemfile.lock /chatbottg/Gemfile.lock
 
+COPY config/database.yml config/secrets.yml /chatbottg/config/
+
 RUN bundle install
 
 COPY entrypoint.sh /usr/bin
