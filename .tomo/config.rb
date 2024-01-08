@@ -9,6 +9,9 @@ plugin "./plugins/telegram-bot_ashab.rb"
 
 host "deployer@5.35.91.113"
 
+app_name "telegram-bot_ashab"
+app_dir "/var/www/#{app_name}"
+
 set application: "telegram-bot_ashab"
 set deploy_to: "/var/www/%{application}"
 set rbenv_ruby_version: "3.0.0"
@@ -43,7 +46,11 @@ set linked_dirs: %w[
   tmp/sockets
 ]
 
+app_type :docker_rails
+
 setup do
+  invoke :docker_build
+  invoke :docker_up 
   run "env:setup"
   run "core:setup_directories"
   run "git:config"
@@ -76,4 +83,12 @@ deploy do
   run "core:clean_releases"
   run "bundler:clean"
   run "core:log_revision"
+end
+
+task :docker_build do 
+  run "cd #{app_dir} && docker compose build -t #{app_dir}"
+end
+
+task :docker_up do
+  run "cd #{app_dir} && docker compose build up -d"
 end
