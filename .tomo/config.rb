@@ -7,7 +7,7 @@ plugin "puma"
 plugin "rbenv"
 plugin "./plugins/telegram-bot_ashab.rb"
 
-host "deployer@5.35.91.113"
+host "root@5.35.91.113"
 
 set application: "telegram-bot_ashab"
 set deploy_to: "/var/www/%{application}"
@@ -31,6 +31,7 @@ set env_vars: {
   DATABASE_URL: :prompt,
   SECRET_KEY_BASE: :prompt
 }
+
 set linked_dirs: %w[
   .yarn/cache
   log
@@ -59,21 +60,20 @@ setup do
   run "rails:db_schema_load"
   # run "rails:db_seed"
   run "puma:setup_systemd"
+  run "docker compose build"
+  run "docker compose up"
 end
 
 deploy do
   run "env:update"
   run "git:create_release"
-  run "core:symlink_shared"
-  run "core:write_release_json"
   run "bundler:install"
   run "rails:db_migrate"
   # run "rails:db_seed"
   run "rails:assets_precompile"
-  run "core:symlink_current"
   run "puma:restart"
   run "puma:check_active"
-  run "core:clean_releases"
   run "bundler:clean"
-  run "core:log_revision"
+  run "docker compose build"
+  run "docker compose up"
 end
