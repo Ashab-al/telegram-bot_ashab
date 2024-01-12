@@ -7,8 +7,6 @@ plugin "puma"
 plugin "rbenv"
 plugin "./plugins/telegram-bot_ashab.rb"
 
-host "root@5.35.91.113"
-
 set application: "telegram-bot_ashab"
 set deploy_to: "/var/www/%{application}"
 set rbenv_ruby_version: "3.0.0"
@@ -21,6 +19,7 @@ set git_exclusions: %w[
   spec/
   test/
 ]
+
 set env_vars: {
   RACK_ENV: "production",
   RAILS_ENV: "production",
@@ -32,48 +31,50 @@ set env_vars: {
   SECRET_KEY_BASE: :prompt
 }
 
-set linked_dirs: %w[
-  .yarn/cache
-  log
-  node_modules
-  public/assets
-  public/packs
-  public/vite
-  tmp/cache
-  tmp/pids
-  tmp/sockets
-]
+set app_dir: "/var/www/%{application}"
+
+host "root@5.35.91.113"
 
 setup do
-  run "env:setup"
-  run "core:setup_directories"
+  run "git:clone"
+  run "git:create_release"
+  run "bundler:install"
+  run "rails:db_schema_load"
+end
+
+deploy do 
   run "git:config"
   run "git:clone"
   run "git:create_release"
-  run "core:symlink_shared"
-  run "nodenv:install"
-  run "rbenv:install"
-  run "bundler:upgrade_bundler"
-  run "bundler:config"
-  run "bundler:install"
-  run "rails:db_create"
-  run "rails:db_schema_load"
-  # run "rails:db_seed"
-  run "puma:setup_systemd"
-  run "docker compose build"
-  run "docker compose up"
+  remote.run "cd %{app_dir} && docker compose build -t %{app_dir}"
+  remote.run "cd %{app_dir} && docker compose build up -d"
+  remote.run "cd %{app_dir} && docker compose run web rails db:create"
+  remote.run "cd %{app_dir} && docker compose run web rails db:migrate"
+  remote.run "cd %{app_dir} && docker compose run web rails assets:precompile"
+  remote.run "cd %{app_dir} && docker compose run web rails restart"
 end
 
-deploy do
-  run "env:update"
-  run "git:create_release"
-  run "bundler:install"
-  run "rails:db_migrate"
-  # run "rails:db_seed"
-  run "rails:assets_precompile"
-  run "puma:restart"
-  run "puma:check_active"
-  run "bundler:clean"
-  run "docker compose build"
-  run "docker compose up"
-end
+# task :docker_build do 
+  
+# end
+
+# task :docker_up do
+  
+# end
+
+# task :rails_db_create do 
+  
+# end
+
+# task :rails_db_migrate do 
+  
+# end
+
+
+# task :rails_assets_precompile do 
+  
+# end
+
+# task :restart_web_server do 
+  
+# end

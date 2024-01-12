@@ -1,4 +1,4 @@
 Yookassa.configure do |config|
-  config.shop_id = "321651"  
-  config.api_key = "live_fbr2jQZe2HcMoC31NiAHEY4EDBcA6ixKE4plYyKqWRM"
+  config.shop_id = Rails.application.secrets.yookassa_api[:shop_id] 
+  config.api_key = Rails.application.secrets.yookassa_api[:api_key] 
 end

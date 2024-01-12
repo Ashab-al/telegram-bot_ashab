@@ -30,10 +30,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     menu
   end
 
-  def send_custom_message(message_text, chat_id)
-    respond_with :message, text: message_text, chat_id: chat_id
-  end
-
   def create_payment(data)
     pay_data = {
       amount: {
@@ -102,7 +98,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def points
-    respond_with :message,
+    points_message = respond_with :message,
                  text: "#{from['first_name']}\n\n" \
                        "🔍 Ваш баланс: #{@user.point} \n" \
                        "🎁 Бонусные: #{@user.bonus} \n\n" \
@@ -111,6 +107,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                    inline_keyboard: [[{ text: 'Купить поинты',
                                         callback_data: 'Купить поинты' }]]
                  }
+  session[:by_points_message_id] = points_message['result']['message_id']
   end
 
   def get_the_mail(*args)
@@ -123,8 +120,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                    text: "Ваша почта: #{args.first}",
                    reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
                                                     [{ text: 'Все четко✅', callback_data: 'Все четко' }]]}
-          session[:get_the_mail_message_id] = get_the_mail_message['result']['message_id']
-          session[:get_the_mail_chat_id] = get_the_mail_message['result']['chat']['id'] 
+          session[:by_points_message_id] = get_the_mail_message['result']['message_id']
+          
         else  
           respond_with :message,
                         text: "Некорректная почта. Напишите еще раз"
@@ -132,8 +129,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                                  
                                            
     elsif @user.email
-      respond_with :message,
-      text: "Вот ссылка на оплату открывашек"
+      choice_tarif
     else 
       respond_with :message,
       text: "Напишите свою почту в этот чат"
@@ -143,8 +139,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def choice_tarif
     bot.edit_message_text text: "Ваша почта: #{session[:email]}\n\n" \
                                 "Выберите тариф",
-                          message_id: session[:get_the_mail_message_id] ,
-                          chat_id: session[:get_the_mail_chat_id],
+                          message_id: session[:by_points_message_id] ,
+                          chat_id: @user.platform_id,
                           reply_markup: {
                             inline_keyboard: [
                               [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
@@ -279,7 +275,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                 "🔋 - означает что категория выбрана\n" \
                                 "\u{1FAAB} - означает что категория НЕ выбрана",
                           message_id: session[:category_message_id],
-                          chat_id: chat["id"],
+                          chat_id: @user.platform_id,
                           reply_markup: formation_of_category_buttons)
   end
 
@@ -325,7 +321,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def update_point_send_messag(text, data, message_id)
     bot.edit_message_text(text: text,
                           message_id: message_id,
-                          chat_id: chat["id"],
+                          chat_id: @user.platform_id,
                           reply_markup: {})
     @user.update(data)
   end
