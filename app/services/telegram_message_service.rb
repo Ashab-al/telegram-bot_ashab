@@ -25,4 +25,8 @@ class TelegramMessageService
     end
     
   end
+
+  def send_payment_notification(data)
+    @bot.send_message(chat_id: 377884669, text: data.to_s)
+  end
 end
