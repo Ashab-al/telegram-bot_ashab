@@ -14,4 +14,8 @@ class UsersController < ApplicationController
 
   def destroy
   end
+
+  def yandex_kassa_callback
+    true
+  end
 end

@@ -7,7 +7,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     match 'vacancies_create', to: 'vacancy#create', via: [:post, :get]
-
   end
-
+  namespace :yandex_kassa_callback do
+    match 'result', to: 'user#yandex_kassa_callback', via: [:post, :get]
+  end
 end

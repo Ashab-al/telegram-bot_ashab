@@ -39,7 +39,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       capture:      true,
       confirmation: {
           type:       'redirect',
-          return_url: 'https://yookassa.ru/'
+          return_url: 'http://5.35.91.113:3000/'
       },
       receipt: {
         customer: {
@@ -56,15 +56,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
             "vat_code": "1"
           }
         ]
+      },
+      metadata: {
+        platform_id: "#{@user.platform_id}",
+        email: "#{@user.email}"
       }
     }
 
     payment = Yookassa.payments.create(payment: pay_data)
-    puts "=========== СОЗДАНИЕ ПЛАТЕЖА ============="
-    p payment.confirmation.confirmation_url
-    p payment.confirmation
-    p payment
-    
     respond_with :message, text: "#{payment.confirmation.confirmation_url}"
   end
 
@@ -327,7 +326,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def default_url_options
-    { locale: "http://www.example.com/" }
+    { locale: "http://5.35.91.113:3000/" }
   end
 
   def session_key
