@@ -31,7 +31,8 @@ set env_vars: {
   SECRET_KEY_BASE: :prompt
 }
 
-set app_dir: "/var/www/%{application}"
+
+set :app_dir, "/var/www/#{fetch(:application)}"
 
 host "root@5.35.91.113"
 
@@ -46,35 +47,10 @@ deploy do
   run "git:config"
   run "git:clone"
   run "git:create_release"
-  remote.run "cd %{app_dir} && docker compose build -t %{app_dir}"
-  remote.run "cd %{app_dir} && docker compose build up -d"
-  remote.run "cd %{app_dir} && docker compose run web rails db:create"
-  remote.run "cd %{app_dir} && docker compose run web rails db:migrate"
-  remote.run "cd %{app_dir} && docker compose run web rails assets:precompile"
-  remote.run "cd %{app_dir} && docker compose run web rails restart"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose build"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose up -d"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose run web rails db:create"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose run web rails db:migrate"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose run web rails assets:precompile"
+  remote.run "cd #{fetch(:app_dir)} && docker-compose restart web"
 end
-
-# task :docker_build do 
-  
-# end
-
-# task :docker_up do
-  
-# end
-
-# task :rails_db_create do 
-  
-# end
-
-# task :rails_db_migrate do 
-  
-# end
-
-
-# task :rails_assets_precompile do 
-  
-# end
-
-# task :restart_web_server do 
-  
-# end

@@ -1,13 +1,12 @@
 FROM ruby:3.0.0
 
-RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
+RUN apt-get update -qq && apt-get install -y nodejs postgresql-client 
+    
 
 WORKDIR /chatbottg
 
 COPY Gemfile /chatbottg/Gemfile
 COPY Gemfile.lock /chatbottg/Gemfile.lock
-RUN echo "------- добавление secrets и database на сервер ------- "
-COPY config/database.yml config/secrets.yml /chatbottg/config/
 
 RUN bundle install
 
