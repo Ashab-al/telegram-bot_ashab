@@ -34,6 +34,7 @@ gem 'yookassa'
 gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
 gem 'tomo'
+gem 'sidekiq'
 # end
 
 group :pry do
