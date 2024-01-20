@@ -18,4 +18,3 @@ production:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>
   database: ashabbot_production
-  username: ashabbot
