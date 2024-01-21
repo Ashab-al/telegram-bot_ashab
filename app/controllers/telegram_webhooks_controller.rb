@@ -30,6 +30,24 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     menu
   end
 
+  def payment_verification(data)
+    result_check_paid = Yookassa.payments.find(payment_id: data[:payment_id])
+    if result_check_paid[:status] == "succeeded"
+      @user.update({:point => @user.point + result_check_paid[:metadata][:quantity_points].to_i})
+      answer_callback_query 'Платеж успешно прошёл! 🔋🎉', show_alert: true
+      bot.edit_message_text text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
+                                  "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
+                          message_id: data[:message_id],
+                          chat_id: @user.platform_id   
+      menu                    
+    else
+      respond_with :message,
+                  text: "Похоже, ваш платеж не был подтвержден. 😕 \n\n" \
+                        "Если вы уже произвели оплату и видите это сообщение, пожалуйста, подождите 5 минут. ⏳ И попробуйте снова нажать на кнопку \"Проверить платеж\"\n\n" \
+                        "Если вы подождали 5 минут и проблема не решена, обратитесь к администратору @AshabAl. 📬"                 
+    end
+  end
+
   def create_payment(data)
     pay_data = {
       amount: {
@@ -39,7 +57,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       capture:      true,
       confirmation: {
           type:       'redirect',
-          return_url: 'http://5.35.91.113:3000/'
+          return_url: 'https://t.me/infobizaa_bot'
       },
       receipt: {
         customer: {
@@ -59,16 +77,45 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       },
       metadata: {
         platform_id: "#{@user.platform_id}",
-        email: "#{@user.email}"
+        email: "#{@user.email}",
+        quantity_points: "#{data[:quantity_points]}"
       }
     }
 
     payment = Yookassa.payments.create(payment: pay_data)
-    respond_with :message, text: "#{payment.confirmation.confirmation_url}"
+    
+    bot.delete_message(chat_id: @user.platform_id, 
+                       message_id: session[:create_payment_message_id]) unless session[:create_payment_message_id].blank?
+    bot.delete_message(chat_id: @user.platform_id, message_id: session[:by_points_message_id])
+  
+    result_send_message = respond_with :message,
+                                        text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
+                                              "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
+                                              "💎 Количество поинтов: #{data[:quantity_points]}\n" \
+                                              "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
+                                              "Ссылка для оплаты - #{payment.confirmation.confirmation_url}",
+                                        reply_markup: {
+                                          inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{payment.id}" }]]
+                                        }
+
+    session[:create_payment_message_id] = result_send_message['result']['message_id'] 
+
+    bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
+                                "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
+                                "💎 Количество поинтов: #{data[:quantity_points]}\n" \
+                                "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
+                                "Ссылка для оплаты - #{payment.confirmation.confirmation_url}",
+                          message_id: result_send_message['result']['message_id'],
+                          chat_id: @user.platform_id,
+                          reply_markup: {
+                            inline_keyboard: [
+                              [{ text: 'Проверить платеж', 
+                                callback_data: "pay_id_#{payment.id}_mes_id_#{result_send_message['result']['message_id']}" }]
+                            ]
+                          } 
   end
 
   def main_menu!
-    p default_url_options[:locale]
     menu
   end
 
@@ -88,7 +135,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       points
     else
       respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
-        keyboard: [['Категории 🧲', 'Поинты 💎', 'Помощь ⚙️'], ['Реклама ✨']],
+        keyboard: [['Поинты 💎', 'Реклама ✨', 'Помощь ⚙️'], ['Категории 🧲']],
         resize_keyboard: true,
         one_time_keyboard: true,
         selective: true
@@ -106,7 +153,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                    inline_keyboard: [[{ text: 'Купить поинты',
                                         callback_data: 'Купить поинты' }]]
                  }
-  session[:by_points_message_id] = points_message['result']['message_id']
+    session[:by_points_message_id] = points_message['result']['message_id']
   end
 
   def get_the_mail(*args)
@@ -136,18 +183,16 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def choice_tarif
-    bot.edit_message_text text: "Ваша почта: #{session[:email]}\n\n" \
+    bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
                                 "Выберите тариф",
-                          message_id: session[:by_points_message_id] ,
+                          message_id: session[:by_points_message_id],
                           chat_id: @user.platform_id,
                           reply_markup: {
                             inline_keyboard: [
                               [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
                               [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }]
                             ]
-                          }      
-    # RestClient.get 'https://api.telegram.org/bot5127742801:AAHNyXy90gXJlzOWNLF67O5CZjlYlM3Y-0g/НАЗВАНИЕ_МЕТОДА', 
-    #                 {params: {id: 50, 'foo' => 'bar'}}        
+                          }            
   end
 
   def choice_help
@@ -166,7 +211,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     Category.all.each_with_index do |category, index|
       text += "#{index+1}. #{category.name}: #{category.user.size}\n"
     end
-    puts text
     respond_with :message, text: "(Еще в разработке)\n\n" \
                                  "Количество пользователей в боте:\n" + text                             
   end
@@ -201,17 +245,25 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when /mid_\d+_bdid_\d+/
       data_scan = data.scan(/\d+/)
       open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+    when /pay_id_\S+/
+      match_data = data.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
+      payment_verification({
+        :payment_id => match_data[0][0],
+        :message_id => match_data[0][1]
+      })
     when '20 поинтов'
       create_payment({
-        :cost => 10.00,
+        :cost => 1.00,
         :email => @user.email,
-        :description => "20 поинтов"
+        :description => "20 поинтов",
+        :quantity_points => 20
       })
     when '100 поинтов'
       create_payment({
-        :cost => 10.00,
+        :cost => 1.00,
         :email => @user.email,
-        :description => "100 поинтов"
+        :description => "100 поинтов",
+        :quantity_points => 100
       })
     end
   end
@@ -227,7 +279,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     unless @user
       @user = User.new(user_params(payload))
       if @user.save
-        p 'GOOD'
+        bot.send_message(chat_id: 377884669, 
+        text: "Новый пользователь в боте\n\n" \
+              "Имя: #{@user.name}\n" \
+              "username: @#{@user.username}\n\n" \
+              "Всего пользователей в боте: #{User.all.size}"
+        )
       else
         respond_with :message, text: 'Вы не сохранились в бд'
       end
@@ -323,10 +380,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                           chat_id: @user.platform_id,
                           reply_markup: {})
     @user.update(data)
-  end
-
-  def default_url_options
-    { locale: "http://5.35.91.113:3000/" }
   end
 
   def session_key
