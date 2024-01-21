@@ -5,11 +5,6 @@ services:
       - ./tmp/db:/var/postgresql/data
     environment:
       POSTGRES_PASSWORD: password
-  tgbot:
-    build: .
-    command: bash -c "bin/rake telegram:bot:poller"
-    volumes:
-      - .:/chatbottg
   web:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=production bundle exec puma -C config/puma.rb"
@@ -19,4 +14,4 @@ services:
       - "3000:3000"
     depends_on:
       - db
-      - tgbot
+      
