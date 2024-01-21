@@ -17,8 +17,4 @@ test:
 production:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>
-<<<<<<< HEAD
-  database: ashabbot_development
-=======
   database: ashabbot_production
->>>>>>> 45ecc821aec7201c26069763df7d3ecdbe71a70c
