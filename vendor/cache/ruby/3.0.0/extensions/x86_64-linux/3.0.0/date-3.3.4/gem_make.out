@@ -1,0 +1,21 @@
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.0.0/gems/date-3.3.4/ext/date
+/home/asxab/.rbenv/versions/3.0.0/bin/ruby -I /home/asxab/.rbenv/versions/3.0.0/lib/ruby/3.0.0 -r ./siteconf20240124-270324-3mpcbi.rb extconf.rb
+checking for rb_category_warn()... yes
+checking for timezone in time.h with  -Werror... yes
+checking for altzone in time.h with  -Werror... no
+creating Makefile
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.0.0/gems/date-3.3.4/ext/date
+make "DESTDIR=" clean
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.0.0/gems/date-3.3.4/ext/date
+make "DESTDIR="
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.so
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.0.0/gems/date-3.3.4/ext/date
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 date_core.so ./.gem.20240124-270324-2erff0

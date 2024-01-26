@@ -35,6 +35,12 @@ gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
 gem 'tomo'
 gem 'sidekiq'
+gem 'redis-rails'
+gem 'whenever', require: false
+gem 'sidekiq-cron'
+# Reduces boot times through caching; required in config/boot.rb
+gem "bootsnap", require: false
+gem 'msgpack'
 # end
 
 group :pry do
