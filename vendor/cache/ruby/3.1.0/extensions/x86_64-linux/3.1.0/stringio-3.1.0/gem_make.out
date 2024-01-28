@@ -1,0 +1,15 @@
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.1.0/gems/stringio-3.1.0/ext/stringio
+/home/asxab/.rbenv/versions/3.1.2/bin/ruby -I /home/asxab/.rbenv/versions/3.1.2/lib/ruby/3.1.0 -r ./siteconf20240128-172509-w0yooo.rb extconf.rb
+creating Makefile
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.1.0/gems/stringio-3.1.0/ext/stringio
+make DESTDIR\= clean
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.1.0/gems/stringio-3.1.0/ext/stringio
+make DESTDIR\=
+compiling stringio.c
+linking shared-object stringio.so
+
+current directory: /home/asxab/railstut/telegram-bot_ashab/vendor/cache/ruby/3.1.0/gems/stringio-3.1.0/ext/stringio
+make DESTDIR\= install
+/usr/bin/install -c -m 0755 stringio.so ./.gem.20240128-172509-ynjskl
