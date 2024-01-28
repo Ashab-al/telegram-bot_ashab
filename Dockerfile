@@ -34,8 +34,20 @@ RUN apt-get update -qq && \
         libreadline8 \
         libz-dev \
         libncursesw5-dev \
-        libffi-dev
+        libffi-dev \
+        && apt-get clean autoclean \
+        && apt-get autoremove -y \
+        && rm -rf \
+            /var/lib/apt \
+            /var/lib/dpkg \
+            /var/lib/cache \
+            /var/lib/log
 
+# после добавь crontabfile
+RUN crontab -l | { cat; echo ""; } | crontab -
+
+# заапдейти через whenever
+RUN bundle exec whenever --update-crontab
 
 WORKDIR /chatbottg
 
@@ -48,6 +60,8 @@ RUN gem install rails -v 7.0.2
 COPY entrypoint.sh /usr/bin
 RUN chmod +x /usr/bin/entrypoint.sh
 ENTRYPOINT [ "entrypoint.sh" ]
+
+
 
 EXPOSE 3000
 
