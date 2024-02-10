@@ -68,7 +68,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def create_payment(data)
     begin 
-      puts "Создания платежа create_payment"
       pay_data = {
         amount: {
             value:    data[:cost],
@@ -101,15 +100,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           quantity_points: "#{data[:quantity_points]}"
         }
       }
-
       payment = Yookassa.payments.create(payment: pay_data)
-      puts "payment: #{payment}"
-      # result_delete = bot.delete_message(chat_id: @user.platform_id, 
-      #                   message_id: session[:create_payment_message_id]) if session[:create_payment_message_id].present?
-      
-      # puts result_delete if result_delete                
-      # result_delete = bot.delete_message(chat_id: @user.platform_id, message_id: session[:by_points_message_id])
-      # puts result_delete if result_delete 
+
       result_send_message = respond_with :message,
                                           text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
                                                 "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
@@ -119,7 +111,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                           reply_markup: {
                                             inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{payment.id}" }]]
                                           }
-      puts "Сообщение отправляется #{result_send_message}"
       session[:create_payment_message_id] = result_send_message['result']['message_id'] 
 
       bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
@@ -136,9 +127,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                               ]
                             } 
     rescue => e
-      puts "Ошибка: #{e}"
-      respond_with :message,
-                  text: "Ошибка: #{e}"
+      bot.send_message(chat_id: 377884669, text: "Ошибка: #{e}")
     end
   end
 
@@ -196,14 +185,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           
         else  
           save_context :get_the_mail 
-          respond_with :message,
-                        text: "Некорректная почта. Напишите еще раз"
+          respond_with :message, text: "Некорректная почта. Напишите еще раз"
       end
                                                                        
     else 
       save_context :get_the_mail 
-      respond_with :message,
-      text: "Напишите свою почту в этот чат"
+      respond_with :message, text: "Напишите свою почту в этот чат"
     end
   end
 
@@ -260,10 +247,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def callback_query(data_callback)
-    respond_with :message, text: "Нажали на кнопку: #{data_callback}"
-
-    puts "Нажали на кнопку: #{data_callback}"
-
     case data_callback
     when 'Выбрать категории'
       choice_category
@@ -272,8 +255,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Поменять почту'
       get_the_mail
     when 'Все четко'
-      @user.update({:email => session[:email]})
-      choice_tarif
+      case session[:email]
+      when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
+        @user.update({:email => session[:email]})
+        choice_tarif
+      else
+        get_the_mail
+      end
+      
     when '20 поинтов'
       create_payment({
         :cost => 100.00,
@@ -298,6 +287,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         :message_id => match_data[0][1]
       })
     end
+
     category = Category.find_by(name: data_callback)
     checking_subscribed_category(category.id) if category
   end
