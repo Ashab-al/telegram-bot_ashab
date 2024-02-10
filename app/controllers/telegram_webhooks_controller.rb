@@ -248,7 +248,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def callback_query(data)
     category = Category.find_by(name: data)
     checking_subscribed_category(category.id) if category
-
+    respond_with :message, text: "Нажали на кнопку: #{data}"
     case data
     # when 'alert'
     #   answer_callback_query 'data', show_alert: true
@@ -261,15 +261,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Все четко'
       @user.update({:email => session[:email]})
       choice_tarif
-    when /mid_\d+_bdid_\d+/
-      data_scan = data.scan(/\d+/)
-      open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
-    when /pay_id_\S+/
-      match_data = data.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
-      payment_verification({
-        :payment_id => match_data[0][0],
-        :message_id => match_data[0][1]
-      })
     when '20 поинтов'
       create_payment({
         :cost => 100.00,
@@ -283,6 +274,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         :email => @user.email,
         :description => "100 поинтов",
         :quantity_points => 100
+      })
+    when /mid_\d+_bdid_\d+/
+      data_scan = data.scan(/\d+/)
+      open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+    when /pay_id_\S+/
+      match_data = data.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
+      payment_verification({
+        :payment_id => match_data[0][0],
+        :message_id => match_data[0][1]
       })
     end
   end
