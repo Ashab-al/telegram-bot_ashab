@@ -171,7 +171,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def get_the_mail(*args)
     save_context :get_the_mail 
-    if args.any?
+
+    if @user.email
+      choice_tarif
+    elsif args.any?
       session[:email] = args.first
       case session[:email]
         when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
@@ -185,10 +188,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           respond_with :message,
                         text: "Некорректная почта. Напишите еще раз"
       end
-                                                 
-                                           
-    elsif @user.email
-      choice_tarif
+                                                                       
     else 
       respond_with :message,
       text: "Напишите свою почту в этот чат"
