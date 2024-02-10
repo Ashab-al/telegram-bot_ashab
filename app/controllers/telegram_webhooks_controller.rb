@@ -170,9 +170,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def get_the_mail(*args)
-    if @user.email
-      choice_tarif
-    elsif args.any?
+    if args.any?
       session[:email] = args.first
       case session[:email]
         when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
@@ -195,7 +193,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-
+  def by_points
+    if @user.email
+      choice_tarif
+    else
+      get_the_mail
+    end
+  end
 
   def choice_tarif
     bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
@@ -251,7 +255,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when 'Выбрать категории'
       choice_category
     when 'Купить поинты'
-      get_the_mail
+      by_points
     when 'Поменять почту'
       get_the_mail
     when 'Все четко'
