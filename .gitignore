@@ -37,7 +37,7 @@
 spec/examples.txt
 config/secrets.yml
 config/database.yml
-docker-compose.yml
+
 Dockerfile
 
 /config/credentials/production.key

@@ -3,7 +3,12 @@
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   
-  before_action :load_user # потом ограничить , only: [:example] или  except: [:example]
+  before_action :load_user, only: [:start!, :payment_verification, :create_payment, :points,
+                                   :by_points, :choice_tarif, :callback_query, 
+                                   :formation_of_category_buttons, :edit_message_category,
+                                   :checking_subscribed_category, :subscribe_user_to_category,
+                                   :unsubscribe_user_from_category, :open_a_vacancy,
+                                   :update_point_send_messag, :menu] # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные
@@ -62,6 +67,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def create_payment(data)
+    puts "Создания платежа create_payment"
     pay_data = {
       amount: {
           value:    data[:cost],
@@ -246,11 +252,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def callback_query(data_callback)
-    category = Category.find_by(name: data_callback)
-    checking_subscribed_category(category.id) if category
-    
     respond_with :message, text: "Нажали на кнопку: #{data_callback}"
+
     puts "Нажали на кнопку: #{data_callback}"
+
     case data_callback
     when 'Выбрать категории'
       choice_category
@@ -285,6 +290,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         :message_id => match_data[0][1]
       })
     end
+    category = Category.find_by(name: data_callback)
+    checking_subscribed_category(category.id) if category
   end
 
   def message(_message)
