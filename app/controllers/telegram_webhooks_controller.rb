@@ -170,8 +170,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def get_the_mail(*args)
-    save_context :get_the_mail 
-
     if @user.email
       choice_tarif
     elsif args.any?
@@ -185,15 +183,19 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           session[:by_points_message_id] = get_the_mail_message['result']['message_id']
           
         else  
+          save_context :get_the_mail 
           respond_with :message,
                         text: "Некорректная почта. Напишите еще раз"
       end
                                                                        
     else 
+      save_context :get_the_mail 
       respond_with :message,
       text: "Напишите свою почту в этот чат"
     end
   end
+
+
 
   def choice_tarif
     bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
