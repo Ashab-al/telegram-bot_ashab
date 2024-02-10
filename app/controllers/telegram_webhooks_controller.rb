@@ -102,11 +102,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     }
 
     payment = Yookassa.payments.create(payment: pay_data)
+    puts "payment: #{payment}"
+    result_delete = bot.delete_message(chat_id: @user.platform_id, 
+                       message_id: session[:create_payment_message_id]) if session[:create_payment_message_id].present?
     
-    bot.delete_message(chat_id: @user.platform_id, 
-                       message_id: session[:create_payment_message_id]) unless session[:create_payment_message_id].blank?
-    bot.delete_message(chat_id: @user.platform_id, message_id: session[:by_points_message_id])
-  
+    puts result_delete if result_delete                
+    result_delete = bot.delete_message(chat_id: @user.platform_id, message_id: session[:by_points_message_id])
+    puts result_delete if result_delete 
     result_send_message = respond_with :message,
                                         text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
                                               "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
@@ -116,7 +118,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                         reply_markup: {
                                           inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{payment.id}" }]]
                                         }
-
+    puts "Сообщение отправляется #{result_send_message}"
     session[:create_payment_message_id] = result_send_message['result']['message_id'] 
 
     bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
