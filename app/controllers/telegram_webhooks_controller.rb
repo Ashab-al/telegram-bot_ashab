@@ -245,13 +245,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     session[:category_message_id] = category_send_message['result']['message_id']
   end
 
-  def callback_query(data)
-    category = Category.find_by(name: data)
+  def callback_query(data_callback)
+    category = Category.find_by(name: data_callback)
     checking_subscribed_category(category.id) if category
-    respond_with :message, text: "Нажали на кнопку: #{data}"
-    case data
-    # when 'alert'
-    #   answer_callback_query 'data', show_alert: true
+    
+    respond_with :message, text: "Нажали на кнопку: #{data_callback}"
+    puts "Нажали на кнопку: #{data_callback}"
+    case data_callback
     when 'Выбрать категории'
       choice_category
     when 'Купить поинты'
@@ -276,10 +276,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         :quantity_points => 100
       })
     when /mid_\d+_bdid_\d+/
-      data_scan = data.scan(/\d+/)
+      data_scan = data_callback.scan(/\d+/)
       open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
     when /pay_id_\S+/
-      match_data = data.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
+      match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
       payment_verification({
         :payment_id => match_data[0][0],
         :message_id => match_data[0][1]
