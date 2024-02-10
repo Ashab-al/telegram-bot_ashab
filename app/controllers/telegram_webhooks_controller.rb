@@ -30,6 +30,19 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     menu
   end
 
+  def update_bonus_users!
+    respond_with :message,
+                  text: "Начало обновления бонусов"
+
+    users_to_update = User.where('bonus < ?', 2)
+    respond_with :message,
+                  text: "Пользователи которые нашлись: #{users_to_update.to_a.size}"
+    users_to_update.update_all(bonus: 2)
+    respond_with :message,
+                  text: "Обновление бонусов завершилось успешно!\n\n" \
+                        "Всего пользователей в боте: #{User.all.size}"
+  end
+
   def payment_verification(data)
     result_check_paid = Yookassa.payments.find(payment_id: data[:payment_id])
     if result_check_paid[:status] == "succeeded"
@@ -253,14 +266,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       })
     when '20 поинтов'
       create_payment({
-        :cost => 1.00,
+        :cost => 100.00,
         :email => @user.email,
         :description => "20 поинтов",
         :quantity_points => 20
       })
     when '100 поинтов'
       create_payment({
-        :cost => 1.00,
+        :cost => 400.00,
         :email => @user.email,
         :description => "100 поинтов",
         :quantity_points => 100
