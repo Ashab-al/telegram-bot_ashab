@@ -56,8 +56,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.edit_message_text text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
                                   "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
                           message_id: data[:message_id],
-                          chat_id: @user.platform_id   
-      menu                    
+                          chat_id: @user.platform_id  
+      bot.send_message(chat_id: 377884669, text: "Оплата прошла успешно:\n\n" \
+                                                  "Клиент: #{@user.name}\n" \
+                                                  "Поинты: #{result_check_paid[:metadata][:quantity_points].to_i}")                     
+      points              
     else
       respond_with :message,
                   text: "Похоже, ваш платеж не был подтвержден. 😕 \n\n" \
@@ -364,8 +367,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     if @subscribed_categories.include?(target_category)
       unsubscribe_user_from_category(target_category)
+      answer_callback_query "Категория успешно удалена из списка желаемого. 👽✅\n\n" \
+                            "Вакансии по этому направлению не будут приходить", show_alert: true
     else
       subscribe_user_to_category(target_category)
+      answer_callback_query "Категория успешно добавлена в список желаемого. 🤖✅\n\n" \
+                            "Скоро бот будет отправлять вакансии по этому направлению. 😉📩", show_alert: true
     end
     edit_message_category
   end
