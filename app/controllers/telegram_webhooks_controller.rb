@@ -32,40 +32,54 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   # session[:user]
 
   def start!(*)
-    menu
+    begin
+      menu
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
+    end
   end
 
   def update_bonus_users!
-    respond_with :message,
-                  text: "Начало обновления бонусов"
+    begin
+      respond_with :message,
+                    text: "Начало обновления бонусов"
 
-    users_to_update = User.where('bonus < ?', 2)
-    respond_with :message,
-                  text: "Пользователи которые нашлись: #{users_to_update.to_a.size}"
-    users_to_update.update_all(bonus: 2)
-    respond_with :message,
-                  text: "Обновление бонусов завершилось успешно!\n\n" \
-                        "Всего пользователей в боте: #{User.all.size}"
+      users_to_update = User.where('bonus < ?', 2)
+      respond_with :message,
+                    text: "Пользователи которые нашлись: #{users_to_update.to_a.size}"
+      users_to_update.update_all(bonus: 2)
+      respond_with :message,
+                    text: "Обновление бонусов завершилось успешно!\n\n" \
+                          "Всего пользователей в боте: #{User.all.size}"
+    
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
+    end
   end
 
   def payment_verification(data)
-    result_check_paid = Yookassa.payments.find(payment_id: data[:payment_id])
-    if result_check_paid[:status] == "succeeded"
-      @user.update({:point => @user.point + result_check_paid[:metadata][:quantity_points].to_i})
-      answer_callback_query 'Платеж успешно прошёл! 🔋🎉', show_alert: true
-      bot.edit_message_text text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
-                                  "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
-                          message_id: data[:message_id],
-                          chat_id: @user.platform_id  
-      bot.send_message(chat_id: 377884669, text: "Оплата прошла успешно:\n\n" \
-                                                  "Клиент: #{@user.name}\n" \
-                                                  "Поинты: #{result_check_paid[:metadata][:quantity_points].to_i}")                     
-      points              
-    else
-      respond_with :message,
-                  text: "Похоже, ваш платеж не был подтвержден. 😕 \n\n" \
-                        "Если вы уже произвели оплату и видите это сообщение, пожалуйста, подождите 5 минут. ⏳ И попробуйте снова нажать на кнопку \"Проверить платеж\"\n\n" \
-                        "Если вы подождали 5 минут и проблема не решена, обратитесь к администратору @AshabAl. 📬"                 
+    begin 
+      result_check_paid = Yookassa.payments.find(payment_id: data[:payment_id])
+      if result_check_paid[:status] == "succeeded"
+        @user.update({:point => @user.point + result_check_paid[:metadata][:quantity_points].to_i})
+        answer_callback_query 'Платеж успешно прошёл! 🔋🎉', show_alert: true
+        bot.edit_message_text text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
+                                    "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
+                            message_id: data[:message_id],
+                            chat_id: @user.platform_id  
+        bot.send_message(chat_id: 377884669, text: "Оплата прошла успешно:\n\n" \
+                                                    "Клиент: #{@user.name}\n" \
+                                                    "Поинты: #{result_check_paid[:metadata][:quantity_points].to_i}")                     
+        points              
+      else
+        respond_with :message,
+                    text: "Похоже, ваш платеж не был подтвержден. 😕 \n\n" \
+                          "Если вы уже произвели оплату и видите это сообщение, пожалуйста, подождите 5 минут. ⏳ И попробуйте снова нажать на кнопку \"Проверить платеж\"\n\n" \
+                          "Если вы подождали 5 минут и проблема не решена, обратитесь к администратору @AshabAl. 📬"                 
+      end
+
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "payment_verification err: #{e}")
     end
   end
 
@@ -130,287 +144,370 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                               ]
                             } 
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "Ошибка: #{e}")
+      bot.send_message(chat_id: 377884669, text: "create_payment err: #{e}")
     end
   end
 
   def main_menu!
-    menu
+    begin
+      menu
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "main_menu err: #{e}")
+    end
   end
 
   def menu(value = nil, *)
-    save_context :menu
+    begin
+      save_context :menu
 
-    case value
-    when 'Категории'
-      choice_category
-    when 'Реклама'
-      marketing
-      menu
-    when 'Помощь'
-      choice_help
-      menu
-    when 'Поинты'
-      points
-    else
-      respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
-        keyboard: [['Поинты 💎', 'Реклама ✨', 'Помощь ⚙️'], ['Категории 🧲']],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-        selective: true
-      }
+      case value
+      when 'Категории'
+        choice_category
+      when 'Реклама'
+        marketing
+        menu
+      when 'Помощь'
+        choice_help
+        menu
+      when 'Поинты'
+        points
+      else
+        respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
+          keyboard: [['Поинты 💎', 'Реклама ✨', 'Помощь ⚙️'], ['Категории 🧲']],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+          selective: true
+        }
+      end
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "menu err: #{e}")
     end
   end
 
   def points
-    points_message = respond_with :message,
-                 text: "#{from['first_name']}\n\n" \
-                       "🔍 Ваш баланс: #{@user.point} \n" \
-                       "🎁 Бонусные: #{@user.bonus} \n\n" \
-                       '(Два бонусных поинта предоставляются бесплатно каждые 24 часа)',
-                 reply_markup: {
-                   inline_keyboard: [[{ text: 'Купить поинты',
-                                        callback_data: 'Купить поинты' }]]
-                 }
-    session[:by_points_message_id] = points_message['result']['message_id']
+    begin
+      points_message = respond_with :message,
+                  text: "#{from['first_name']}\n\n" \
+                        "🔍 Ваш баланс: #{@user.point} \n" \
+                        "🎁 Бонусные: #{@user.bonus} \n\n" \
+                        '(Два бонусных поинта предоставляются бесплатно каждые 24 часа)',
+                  reply_markup: {
+                    inline_keyboard: [[{ text: 'Купить поинты',
+                                          callback_data: 'Купить поинты' }]]
+                  }
+      session[:by_points_message_id] = points_message['result']['message_id']
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "points err: #{e}")
+    end
   end
 
   def get_the_mail(*args)
-    if args.any?
-      session[:email] = args.first
-      case session[:email]
-        when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
-          get_the_mail_message = respond_with :message, 
-                   text: "Ваша почта: #{args.first}",
-                   reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
-                                                    [{ text: 'Все четко✅', callback_data: 'Все четко' }]]}
-          session[:by_points_message_id] = get_the_mail_message['result']['message_id']
-          
-        else  
-          save_context :get_the_mail 
-          respond_with :message, text: "Некорректная почта. Напишите еще раз"
+    begin
+      if args.any?
+        session[:email] = args.first
+        case session[:email]
+          when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
+            get_the_mail_message = respond_with :message, 
+                    text: "Ваша почта: #{args.first}",
+                    reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
+                                                      [{ text: 'Все четко✅', callback_data: 'Все четко' }]]}
+            session[:by_points_message_id] = get_the_mail_message['result']['message_id']
+            
+          else  
+            save_context :get_the_mail 
+            respond_with :message, text: "Некорректная почта. Напишите еще раз"
+        end
+                                                                        
+      else 
+        save_context :get_the_mail 
+        respond_with :message, text: "Напишите свою почту в этот чат"
       end
-                                                                       
-    else 
-      save_context :get_the_mail 
-      respond_with :message, text: "Напишите свою почту в этот чат"
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "get_the_mail err: #{e}")
     end
   end
 
   def by_points
-    if @user.email
-      choice_tarif
-    else
-      get_the_mail
-    end
-  end
-
-  def choice_tarif
-    bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
-                                "Выберите тариф",
-                          message_id: session[:by_points_message_id],
-                          chat_id: @user.platform_id,
-                          reply_markup: {
-                            inline_keyboard: [
-                              [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
-                              [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }]
-                            ]
-                          }            
-  end
-
-  def choice_help
-    respond_with :message, text: "👉⚡️ Инструкция:\n\n" \
-                                 "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" \
-                                 "2️⃣ Выбери свою область 💼\n" \
-                                 "🔹 Получай интересные предложения мгновенно\n\n" \
-                                 "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" \
-                                 "🔹 Поинты - валюта для доступа к контактам ⚜️\n" \
-                                 "🔹 Ежедневно 2 бесплатных поинта\n\n" \
-                                 'Готовы к новым возможностям? "Категории 🧲" - и вперёд!'
-  end
-
-  def marketing
-    text = ""
-    Category.all.each_with_index do |category, index|
-      text += "#{index+1}. #{category.name}: #{category.user.size}\n"
-    end
-    respond_with :message, text: "(Еще в разработке)\n\n" \
-                                 "Количество пользователей в боте:\n" + text                             
-  end
-
-  def choice_category
-    category_send_message = respond_with :message,
-                                         text: "Выберите категории \n" \
-                                               "(Просто нажмите на интересующие кнопки)\n\n" \
-                                               "🔋 - означает что категория выбрана\n" \
-                                               "\u{1FAAB} - означает что категория НЕ выбрана",
-                                         reply_markup: formation_of_category_buttons
-
-    session[:category_message_id] = category_send_message['result']['message_id']
-  end
-
-  def callback_query(data_callback)
-    case data_callback
-    when 'Выбрать категории'
-      choice_category
-    when 'Купить поинты'
-      by_points
-    when 'Поменять почту'
-      get_the_mail
-    when 'Все четко'
-      case session[:email]
-      when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
-        @user.update({:email => session[:email]})
+    begin
+      if @user.email
         choice_tarif
       else
         get_the_mail
       end
-      
-    when '20 поинтов'
-      create_payment({
-        :cost => 100.00,
-        :email => @user.email,
-        :description => "20 поинтов",
-        :quantity_points => 20
-      })
-    when '100 поинтов'
-      create_payment({
-        :cost => 400.00,
-        :email => @user.email,
-        :description => "100 поинтов",
-        :quantity_points => 100
-      })
-    when /mid_\d+_bdid_\d+/
-      data_scan = data_callback.scan(/\d+/)
-      open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
-    when /pay_id_\S+/
-      match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
-      payment_verification({
-        :payment_id => match_data[0][0],
-        :message_id => match_data[0][1]
-      })
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "by_points err: #{e}")
     end
+  end
 
-    category = Category.find_by(name: data_callback)
-    checking_subscribed_category(category.id) if category
+  def choice_tarif
+    begin 
+      bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
+                                  "Выберите тариф",
+                            message_id: session[:by_points_message_id],
+                            chat_id: @user.platform_id,
+                            reply_markup: {
+                              inline_keyboard: [
+                                [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
+                                [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }]
+                              ]
+                            }            
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "choice_tarif err: #{e}")
+    end
+  end
+
+  def choice_help
+    begin
+      respond_with :message, text: "👉⚡️ Инструкция:\n\n" \
+                                  "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" \
+                                  "2️⃣ Выбери свою область 💼\n" \
+                                  "🔹 Получай интересные предложения мгновенно\n\n" \
+                                  "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" \
+                                  "🔹 Поинты - валюта для доступа к контактам ⚜️\n" \
+                                  "🔹 Ежедневно 2 бесплатных поинта\n\n" \
+                                  'Готовы к новым возможностям? "Категории 🧲" - и вперёд!'
+
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "choice_help err: #{e}")
+    end
+  end
+
+  def marketing
+    begin
+      text = ""
+      Category.all.each_with_index do |category, index|
+        text += "#{index+1}. #{category.name}: #{category.user.size}\n"
+      end
+      respond_with :message, text: "(Еще в разработке)\n\n" \
+                                  "Количество пользователей в боте:\n" + text     
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "marketing err: #{e}")
+    end
+  end
+
+  def choice_category
+    begin
+      category_send_message = respond_with :message,
+                                          text: "Выберите категории \n" \
+                                                "(Просто нажмите на интересующие кнопки)\n\n" \
+                                                "🔋 - означает что категория выбрана\n" \
+                                                "\u{1FAAB} - означает что категория НЕ выбрана",
+                                          reply_markup: formation_of_category_buttons
+
+      session[:category_message_id] = category_send_message['result']['message_id']
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "choice_category err: #{e}")
+    end
+  end
+
+  def callback_query(data_callback)
+    begin
+      case data_callback
+      when 'Выбрать категории'
+        choice_category
+      when 'Купить поинты'
+        by_points
+      when 'Поменять почту'
+        get_the_mail
+      when 'Все четко'
+        case session[:email]
+        when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
+          @user.update({:email => session[:email]})
+          choice_tarif
+        else
+          get_the_mail
+        end
+        
+      when '20 поинтов'
+        create_payment({
+          :cost => 100.00,
+          :email => @user.email,
+          :description => "20 поинтов",
+          :quantity_points => 20
+        })
+      when '100 поинтов'
+        create_payment({
+          :cost => 400.00,
+          :email => @user.email,
+          :description => "100 поинтов",
+          :quantity_points => 100
+        })
+      when /mid_\d+_bdid_\d+/
+        data_scan = data_callback.scan(/\d+/)
+        open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+      when /pay_id_\S+/
+        match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
+        payment_verification({
+          :payment_id => match_data[0][0],
+          :message_id => match_data[0][1]
+        })
+      end
+
+      category = Category.find_by(name: data_callback)
+      checking_subscribed_category(category.id) if category
+
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "callback_query err: #{e}")
+    end
   end
 
   def message(_message)
-    menu
+    begin
+      menu
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "message err: #{e}")
+    end
   end
 
   private
 
   def load_user
-    @user = User.find_by_platform_id(payload['from']['id'])
-    unless @user
-      @user = User.new(user_params(payload))
-      if @user.save
-        bot.send_message(chat_id: 377884669, 
-        text: "Новый пользователь в боте\n\n" \
-              "Имя: #{@user.name}\n" \
-              "username: @#{@user.username}\n\n" \
-              "Всего пользователей в боте: #{User.all.size}"
-        )
-      else
-        respond_with :message, text: 'Вы не сохранились в бд'
+    begin
+      @user = User.find_by_platform_id(payload['from']['id'])
+      unless @user
+        @user = User.new(user_params(payload))
+        if @user.save
+          bot.send_message(chat_id: 377884669, 
+          text: "Новый пользователь в боте\n\n" \
+                "Имя: #{@user.name}\n" \
+                "username: @#{@user.username}\n\n" \
+                "Всего пользователей в боте: #{User.all.size}"
+          )
+        else
+          respond_with :message, text: 'Вы не сохранились в бд'
+        end
       end
+      subscriptions = @user.subscriptions.includes(:category)
+      @subscribed_categories = subscriptions.map(&:category)
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "load_user err: #{e}")
     end
-    subscriptions = @user.subscriptions.includes(:category)
-    @subscribed_categories = subscriptions.map(&:category)
   end
 
   def user_params(data)
-    {
-      username: data['from']['username'],
-      platform_id: data['from']['id'],
-      name: data['from']['first_name'],
-      point: 0,
-      bonus: 2
-    }
+    begin
+      {
+        username: data['from']['username'] || "",
+        platform_id: data['from']['id'],
+        name: data['from']['first_name'] || "",
+        point: 0,
+        bonus: 2
+      }
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "user_params err: #{e}")
+    end
   end
 
   def formation_of_category_buttons
-    subscriptions = @user.subscriptions.includes(:category)
-    @subscribed_categories = subscriptions.map(&:category)
-    all_category = Category.all
-    
-    buttons = []
-    couple_button = []
-    all_category.each do | category |
-      couple_button << {
-        text: "#{category.name} #{@subscribed_categories.include?(category) ? '🔋' : "\u{1FAAB}"}",
-        callback_data: "#{category.name}"
-      }
+    begin
+      subscriptions = @user.subscriptions.includes(:category)
+      @subscribed_categories = subscriptions.map(&:category)
+      all_category = Category.all
+      
+      buttons = []
+      couple_button = []
+      all_category.each do | category |
+        couple_button << {
+          text: "#{category.name} #{@subscribed_categories.include?(category) ? '🔋' : "\u{1FAAB}"}",
+          callback_data: "#{category.name}"
+        }
 
-      if couple_button.size == 2 || category == all_category.last
-        buttons << couple_button
-        couple_button = []
+        if couple_button.size == 2 || category == all_category.last
+          buttons << couple_button
+          couple_button = []
+        end
       end
-    end
 
-    {inline_keyboard: buttons}
+      {inline_keyboard: buttons}
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "formation_of_category_buttons err: #{e}")
+    end
   end
 
   def edit_message_category
-    bot.edit_message_text(text: "Выберите категории \n" \
-                                "(Просто нажмите на интересующие кнопки)\n\n" \
-                                "🔋 - означает что категория выбрана\n" \
-                                "\u{1FAAB} - означает что категория НЕ выбрана",
-                          message_id: session[:category_message_id],
-                          chat_id: @user.platform_id,
-                          reply_markup: formation_of_category_buttons)
+    begin
+      bot.edit_message_text(text: "Выберите категории \n" \
+                                  "(Просто нажмите на интересующие кнопки)\n\n" \
+                                  "🔋 - означает что категория выбрана\n" \
+                                  "\u{1FAAB} - означает что категория НЕ выбрана",
+                            message_id: session[:category_message_id],
+                            chat_id: @user.platform_id,
+                            reply_markup: formation_of_category_buttons)
+
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "edit_message_category err: #{e}")
+    end
   end
 
   def checking_subscribed_category(category_id)
-    target_category = Category.find(category_id)
+    begin
+      target_category = Category.find(category_id)
 
-    if @subscribed_categories.include?(target_category)
-      unsubscribe_user_from_category(target_category)
-      answer_callback_query "Категория успешно удалена из списка желаемого. 👽✅\n\n" \
-                            "Вакансии по этому направлению не будут приходить", show_alert: true
-    else
-      subscribe_user_to_category(target_category)
-      answer_callback_query "Категория успешно добавлена в список желаемого. 🤖✅\n\n" \
-                            "Скоро бот будет отправлять вакансии по этому направлению. 😉📩", show_alert: true
+      if @subscribed_categories.include?(target_category)
+        unsubscribe_user_from_category(target_category)
+        answer_callback_query "Категория успешно удалена из списка желаемого. 👽✅\n\n" \
+                              "Вакансии по этому направлению не будут приходить", show_alert: true
+      else
+        subscribe_user_to_category(target_category)
+        answer_callback_query "Категория успешно добавлена в список желаемого. 🤖✅\n\n" \
+                              "Скоро бот будет отправлять вакансии по этому направлению. 😉📩", show_alert: true
+      end
+      edit_message_category
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "checking_subscribed_category err: #{e}")
     end
-    edit_message_category
   end
 
   def subscribe_user_to_category(category)
-    @user.subscriptions.create(category: category)
+    begin
+      @user.subscriptions.create(category: category)
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "subscribe_user_to_category err: #{e}")
+    end
   end
 
   def unsubscribe_user_from_category(category)
-    @user.subscriptions.find_by(category: category)&.destroy
+    begin
+      @user.subscriptions.find_by(category: category)&.destroy
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "unsubscribe_user_from_category err: #{e}")
+    end
   end
 
   def open_a_vacancy(data)
-    vacancy = Vacancy.find(data[:vacancy_id])
-    text_formation = "Категория: #{vacancy.category_title}\n\n" \
-                     "#{vacancy.description}\n\n" \
-                     "Контакты:\n" \
-                     "#{vacancy.contact_information}"
+    begin
+      vacancy = Vacancy.find(data[:vacancy_id])
+      text_formation = "Категория: #{vacancy.category_title}\n\n" \
+                      "#{vacancy.description}\n\n" \
+                      "Контакты:\n" \
+                      "#{vacancy.contact_information}"
 
-    if @user.bonus > 0
-      update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id])
-    elsif @user.point > 0
-      update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id])
-    else
-      answer_callback_query "У вас закончились поинты \u{1FAAB}\n\n" \
-                            "Покупка поинтов - выгодное вложение!" \
-                            "💎 Бонусный счет: #{@user.bonus}\n" \
-                            "💎 Платный счет: #{@user.point}\n", 
-                            show_alert: true
+      if @user.bonus > 0
+        update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id])
+      elsif @user.point > 0
+        update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id])
+      else
+        answer_callback_query "У вас закончились поинты \u{1FAAB}\n\n" \
+                              "Покупка поинтов - выгодное вложение!" \
+                              "💎 Бонусный счет: #{@user.bonus}\n" \
+                              "💎 Платный счет: #{@user.point}\n", 
+                              show_alert: true
+      end
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "open_a_vacancy err: #{e}")
     end
   end
 
   def update_point_send_messag(text, data, message_id)
-    bot.edit_message_text(text: text,
-                          message_id: message_id,
-                          chat_id: @user.platform_id,
-                          reply_markup: {})
-    @user.update(data)
+    begin
+      bot.edit_message_text(text: text,
+                            message_id: message_id,
+                            chat_id: @user.platform_id,
+                            reply_markup: {})
+      @user.update(data)
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "update_point_send_messag err: #{e}")
+    end
   end
 
   def session_key

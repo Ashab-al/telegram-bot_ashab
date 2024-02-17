@@ -8,8 +8,6 @@ class User < ApplicationRecord
   validates :platform_id, uniqueness: true,
                           presence: true
 
-  validates :name, presence: true
-
   validates :email, uniqueness: true, allow_blank: true
 
   validates :phone, uniqueness: true, allow_blank: true

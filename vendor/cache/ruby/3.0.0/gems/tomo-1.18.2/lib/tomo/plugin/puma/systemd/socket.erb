@@ -1,0 +1,13 @@
+[Unit]
+Description=Puma HTTP Server Accept Sockets for <%= settings[:application] %>
+
+[Socket]
+ListenStream=<%= settings[:puma_host] %>:<%= settings[:puma_port] %>
+
+# Socket options matching Puma defaults
+NoDelay=true
+ReusePort=true
+Backlog=1024
+
+[Install]
+WantedBy=sockets.target
