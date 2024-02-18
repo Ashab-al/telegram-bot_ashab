@@ -28,6 +28,7 @@ class TelegramMessageService
       @bot.send_message(chat_id: 377884669, text: "sending_vacancy_to_users err: #{e}")
       @bot.send_message(chat_id: 377884669, text: "Ошибка: #{@user.name}")
       @bot.send_message(chat_id: 377884669, text: "Ошибка: #{@user.platform_id}")
+      @user.destroy
     end
   end
 
