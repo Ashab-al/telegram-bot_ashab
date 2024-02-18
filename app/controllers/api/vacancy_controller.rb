@@ -1,5 +1,6 @@
 class Api::VacancyController < ApplicationController
-
+  protect_from_forgery with: :null_session
+  
   def index
     @vacancys = Vacancy.all
     render json: @vacancys
