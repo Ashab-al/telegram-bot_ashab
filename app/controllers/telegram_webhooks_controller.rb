@@ -8,7 +8,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                    :formation_of_category_buttons, :edit_message_category,
                                    :checking_subscribed_category, :subscribe_user_to_category,
                                    :unsubscribe_user_from_category, :open_a_vacancy,
-                                   :update_point_send_messag, :menu] # потом ограничить , only: [:example] или  except: [:example]
+                                   :update_point_send_messag, :menu, :my_chat_member, 
+                                   :main_menu!] # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные
@@ -33,6 +34,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
+      
       menu
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
@@ -359,6 +361,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
+  def my_chat_member(data)
+    begin
+      @user.update({:bot_status => "bot_blocked"})
+    rescue => e 
+      bot.send_message(chat_id: 377884669, text: "my_chat_member err: #{e}")
+    end
+  end
+
   private
 
   def load_user
@@ -374,11 +384,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                 "Всего пользователей в боте: #{User.all.size}"
           )
         else
-          respond_with :message, text: 'Вы не сохранились в бд'
+          bot.send_message(chat_id: 377884669, 
+          text: "Пользователь не сохранился в бд #{payload}")
         end
       end
       subscriptions = @user.subscriptions.includes(:category)
       @subscribed_categories = subscriptions.map(&:category)
+      @user.update({:bot_status => "works"}) if @user.bot_status != "works"
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "load_user err: #{e}")
     end

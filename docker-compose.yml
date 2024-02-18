@@ -1,4 +1,26 @@
 services:
+  # db:
+  #   image: postgres
+  #   volumes:
+  #     - ./tmp/db:/var/postgresql/data
+  #   environment:
+  #     POSTGRES_PASSWORD: password
+  # tgbot:
+  #   build: .
+  #   command: bash -c "bin/rake telegram:bot:poller"
+  #   volumes:
+  #     - .:/chatbottg
+  # web:
+  #   build: .
+  #   command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=development bundle exec rails s -p 3000 -b '0.0.0.0'"
+  #   volumes:
+  #     - .:/chatbottg
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - db
+  #     - tgbot
+  
   db:
     image: postgres
     volumes:
