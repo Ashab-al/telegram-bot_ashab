@@ -10,7 +10,7 @@ class TelegramMessageService
 
       Category.find_by(name: data.category_title).user.each do |user|
         result_send = @bot.send_message(chat_id: user.platform_id, text: text_formation)
-
+        @user = user
         @bot.edit_message_text(text: text_formation,
                             message_id: result_send["result"]["message_id"],
                             chat_id: user.platform_id,
@@ -26,6 +26,8 @@ class TelegramMessageService
       end
     rescue => e
       @bot.send_message(chat_id: 377884669, text: "sending_vacancy_to_users err: #{e}")
+      @bot.send_message(chat_id: 377884669, text: "Ошибка: #{@user.name}")
+      @bot.send_message(chat_id: 377884669, text: "Ошибка: #{@user.platform_id}")
     end
   end
 
