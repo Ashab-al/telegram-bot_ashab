@@ -25,7 +25,7 @@ class TelegramMessageService
                             )
       end
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "checking_subscribed_category err: #{e}")
+      @bot.send_message(chat_id: 377884669, text: "sending_vacancy_to_users err: #{e}")
     end
   end
 
