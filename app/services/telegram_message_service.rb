@@ -4,26 +4,29 @@ class TelegramMessageService
   end
 
   def sending_vacancy_to_users(data)
-    text_formation = "Категория: #{data.category_title}\n\n" \
-                     "#{data.description}"
+    begin
+      text_formation = "Категория: #{data.category_title}\n\n" \
+                      "#{data.description}"
 
-    Category.find_by(name: data.category_title).user.each do |user|
-      result_send = @bot.send_message(chat_id: user.platform_id, text: text_formation)
+      Category.find_by(name: data.category_title).user.each do |user|
+        result_send = @bot.send_message(chat_id: user.platform_id, text: text_formation)
 
-      @bot.edit_message_text(text: text_formation,
-                          message_id: result_send["result"]["message_id"],
-                          chat_id: user.platform_id,
-                          reply_markup: {
-                            inline_keyboard: [
-                            [
-                              { text: "Получить контакты",
-                                callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }
+        @bot.edit_message_text(text: text_formation,
+                            message_id: result_send["result"]["message_id"],
+                            chat_id: user.platform_id,
+                            reply_markup: {
+                              inline_keyboard: [
+                              [
+                                { text: "Получить контакты",
+                                  callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }
+                              ]
                             ]
-                          ]
-                        }
-                          )
+                          }
+                            )
+      end
+    rescue => e
+      bot.send_message(chat_id: 377884669, text: "checking_subscribed_category err: #{e}")
     end
-    
   end
 
   def send_payment_notification(data)

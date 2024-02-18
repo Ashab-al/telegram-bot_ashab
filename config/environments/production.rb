@@ -95,6 +95,8 @@ Rails.application.configure do
   routes.default_url_options = {host: 'ashabal.ru', protocol: 'https'}
 
   config.hosts << "ashabal.ru"
+  config.hosts << "5.35.91.113"
+  config.hosts << "5.35.92.43"
 
   # Configure session store for telegram bot.
   config.telegram_updates_controller.session_store = :file_store,
