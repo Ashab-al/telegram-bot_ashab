@@ -17,10 +17,8 @@ class TelegramMessageService
                               chat_id: user.platform_id,
                               reply_markup: {
                                 inline_keyboard: [
-                                [
-                                  { text: "Получить контакты",
-                                    callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }
-                                ]
+                                [{ text: "💎 Получить контакты 💎", callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }],
+                                [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }]
                               ]
                             }
                               )

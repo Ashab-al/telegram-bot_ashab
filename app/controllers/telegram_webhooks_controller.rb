@@ -334,7 +334,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           :description => "100 поинтов",
           :quantity_points => 100
         })
-      when /mid_\d+_bdid_\d+/
+      when /^mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
       when /pay_id_\S+/
