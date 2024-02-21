@@ -498,15 +498,16 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
         return true
       end
+      button = [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{data[:message_id]}_bdid_#{data[:vacancy_id]}" }]
       text_formation = "Категория: #{vacancy.category_title}\n\n" \
                       "#{vacancy.description}\n\n" \
                       "Контакты:\n" \
                       "#{vacancy.contact_information}"
-
+                      
       if @user.bonus > 0
-        update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id])
+        update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id], button)
       elsif @user.point > 0
-        update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id])
+        update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id], button)
       else
         answer_callback_query "У вас закончились поинты \u{1FAAB}\n\n" \
                               "Покупка поинтов - выгодное вложение!" \
@@ -540,12 +541,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def update_point_send_messag(text, data, message_id)
+  def update_point_send_messag(text, data, message_id, button)
     begin
       bot.edit_message_text(text: text,
                             message_id: message_id,
                             chat_id: @user.platform_id,
-                            reply_markup: {})
+                            reply_markup: {inline_keyboard: [button]})
       @user.update(data)
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "update_point_send_messag err: #{e}")
