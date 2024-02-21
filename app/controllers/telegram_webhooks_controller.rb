@@ -337,6 +337,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when /^mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+      when /^spam_mid_\d+_bdid_\d+/
+        data_scan = data_callback.scan(/\d+/)
+        spam_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+      
       when /pay_id_\S+/
         match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
         payment_verification({
@@ -489,6 +493,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def open_a_vacancy(data)
     begin
       vacancy = Vacancy.find(data[:vacancy_id])
+      blacklist = Blacklist.find_by(:contact_information => vacancy.contact_information)
+      if blacklist and blacklist.complaint_counter >= 3
+        answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
+        return true
+      end
       text_formation = "Категория: #{vacancy.category_title}\n\n" \
                       "#{vacancy.description}\n\n" \
                       "Контакты:\n" \
@@ -507,6 +516,27 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       end
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "open_a_vacancy err: #{e}")
+    end
+  end
+
+  def spam_vacancy(data)
+    vacancy = Vacancy.find(data[:vacancy_id])
+    blacklist = Blacklist.find_by(:contact_information => vacancy.contact_information)
+    
+    unless blacklist
+      Blacklist.create({
+        :contact_information => vacancy.contact_information,
+        :complaint_counter => 1
+      }).save
+      answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
+      return true
+    end
+
+    if blacklist and blacklist.complaint_counter >= 3
+      answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
+    else
+      answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
+      blacklist.update(:complaint_counter => blacklist.complaint_counter + 1)
     end
   end
 
