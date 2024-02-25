@@ -19,7 +19,7 @@ class Api::VacancyController < ApplicationController
   private
 
   def blacklist_check(vacancy)
-    blacklist = Blacklist.find_by(:contact_information => vacancy.contact_information)
+    blacklist = vacancy.source == "tg_chat" ? Blacklist.find_by(:contact_information => vacancy.platform_id) : Blacklist.find_by(:contact_information => vacancy.contact_information)
     if blacklist && blacklist.complaint_counter >= 3
       return false
     else 
@@ -28,7 +28,7 @@ class Api::VacancyController < ApplicationController
   end
 
   def vacancy_params
-    params.permit(:category_title, :title, :description, :contact_information)
+    params.permit(:category_title, :title, :description, :contact_information, :platform_id, :source)
   end
 
   def send_vacancy(vacancy)

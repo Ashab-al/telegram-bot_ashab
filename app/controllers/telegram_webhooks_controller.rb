@@ -493,7 +493,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def open_a_vacancy(data)
     begin
       vacancy = Vacancy.find(data[:vacancy_id])
-      blacklist = Blacklist.find_by(:contact_information => vacancy.contact_information)
+      contact_information = vacancy.source == "tg_chat" ? vacancy.platform_id : vacancy.contact_information
+  
+      blacklist = Blacklist.find_by(:contact_information => contact_information)
       if blacklist and blacklist.complaint_counter >= 3
         answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
         return true
@@ -522,22 +524,17 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def spam_vacancy(data)
     vacancy = Vacancy.find(data[:vacancy_id])
-    blacklist = Blacklist.find_by(:contact_information => vacancy.contact_information)
-    
-    unless blacklist
-      Blacklist.create({
-        :contact_information => vacancy.contact_information,
-        :complaint_counter => 1
-      }).save
-      answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
-      return true
+    contact_information = vacancy.source == "tg_chat" ? vacancy.platform_id : vacancy.contact_information
+  
+    blacklist = Blacklist.find_or_create_by(contact_information: contact_information) do |blacklist|
+      blacklist.complaint_counter = 0
     end
-
-    if blacklist and blacklist.complaint_counter >= 3
+  
+    if blacklist.complaint_counter >= 3
       answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
     else
       answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
-      blacklist.update(:complaint_counter => blacklist.complaint_counter + 1)
+      blacklist.increment!(:complaint_counter)
     end
   end
 
