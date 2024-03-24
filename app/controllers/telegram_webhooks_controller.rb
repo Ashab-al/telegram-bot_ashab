@@ -34,7 +34,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
-      
+      choice_help
       menu
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
@@ -174,6 +174,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when 'Поинты'
         points
       else
+        respond_with :message, text: total_vacancies_sent,
+                                parse_mode: 'HTML'
+
         respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
           keyboard: [['Поинты 💎', 'Реклама ✨', 'Помощь ⚙️'], ['Категории 🧲']],
           resize_keyboard: true,
@@ -184,6 +187,22 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     rescue => e
       bot.send_message(chat_id: 377884669, text: "menu err: #{e}")
     end
+  end
+
+  def total_vacancies_sent
+    vacancies_by_category = Vacancy.group(:category_title).count
+    text = "<b>Всего вакансий отправлено:</b> #{Vacancy.count} ⚡️\n"
+    
+    Category.all.each do |category|  
+      category_vacancies_count = vacancies_by_category[category.name] || 0
+      text += if category_vacancies_count.positive?
+                "<b>#{category.name}:</b> #{category_vacancies_count}\n"
+              else
+                "#{category.name}: #{category_vacancies_count}\n"
+              end
+    end
+    
+    text 
   end
 
   def points
@@ -249,8 +268,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                             chat_id: @user.platform_id,
                             reply_markup: {
                               inline_keyboard: [
-                                [{ text: '💎 20 поинтов - 100₽', callback_data: '20 поинтов' }],
-                                [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }]
+                                [{ text: '💎 10 поинтов - 60₽', callback_data: '10 поинтов' }],
+                                [{ text: '💎 30 поинтов - 150₽', callback_data: '30 поинтов' }],
+                                [{ text: '💎 50 поинтов - 225₽', callback_data: '50 поинтов' }],
+                                [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }],
+                                [{ text: '💎 150 поинтов - 525₽', callback_data: '150 поинтов' }],
+                                [{ text: '💎 200 поинтов - 600₽', callback_data: '200 поинтов' }]
                               ]
                             }            
     rescue => e
@@ -261,13 +284,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def choice_help
     begin
       respond_with :message, text: "👉⚡️ Инструкция:\n\n" \
-                                  "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" \
-                                  "2️⃣ Выбери свою область 💼\n" \
-                                  "🔹 Получай интересные предложения мгновенно\n\n" \
-                                  "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" \
-                                  "🔹 Поинты - валюта для доступа к контактам ⚜️\n" \
-                                  "🔹 Ежедневно 2 бесплатных поинта\n\n" \
-                                  'Готовы к новым возможностям? "Категории 🧲" - и вперёд!'
+      "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" \
+      "2️⃣ Выбери свою область 💼\n" \
+      "🔹 Получай интересные предложения мгновенно\n\n" \
+      "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" \
+      "🔹 Поинты - валюта для доступа к контактам ⚜️\n" \
+      "🔹 Ежедневно 2 бесплатных поинта\n\n" \
+      'Готовы к новым возможностям? "Категории 🧲" - и вперёд!' 
 
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "choice_help err: #{e}")
@@ -301,16 +324,24 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.send_message(chat_id: 377884669, text: "choice_category err: #{e}")
     end
   end
+  
 
   def callback_query(data_callback)
     begin
+      
       case data_callback
       when 'Выбрать категории'
         choice_category
+        return true
       when 'Купить поинты'
         by_points
+        return true
+      when 'Поинты'
+        points
+        return true
       when 'Поменять почту'
         get_the_mail
+        return true
       when 'Все четко'
         case session[:email]
         when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
@@ -318,35 +349,63 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           choice_tarif
         else
           get_the_mail
-        end
-        
-      when '20 поинтов'
+        end       
+        return true
+      when /^\d{1,3} поинтов$/
+        tarifs = {
+          "10 поинтов": {
+            :cost => 60.00,
+            :description => "10 поинтов",
+            :quantity_points => 10
+          },
+          "30 поинтов": {
+            :cost => 150.00,
+            :description => "30 поинтов",
+            :quantity_points => 30
+          },
+          "50 поинтов": {
+            :cost => 225.00,
+            :description => "50 поинтов",
+            :quantity_points => 50
+          },
+          "100 поинтов": {
+            :cost => 400.00,
+            :description => "100 поинтов",
+            :quantity_points => 100
+          },
+          "150 поинтов": {
+            :cost => 525.00,
+            :description => "150 поинтов",
+            :quantity_points => 150
+          },
+          "200 поинтов": {
+            :cost => 600.00,
+            :description => "200 поинтов",
+            :quantity_points => 200
+          }
+        }
         create_payment({
-          :cost => 100.00,
+          :cost => tarifs[:"#{data_callback}"][:cost],
           :email => @user.email,
-          :description => "20 поинтов",
-          :quantity_points => 20
+          :description => tarifs[:"#{data_callback}"][:description],
+          :quantity_points => tarifs[:"#{data_callback}"][:quantity_points]
         })
-      when '100 поинтов'
-        create_payment({
-          :cost => 400.00,
-          :email => @user.email,
-          :description => "100 поинтов",
-          :quantity_points => 100
-        })
+        return true
       when /^mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+        return true
       when /^spam_mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         spam_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
-      
+        return true
       when /pay_id_\S+/
         match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
         payment_verification({
           :payment_id => match_data[0][0],
           :message_id => match_data[0][1]
         })
+        return true
       end
 
       category = Category.find_by(name: data_callback)
@@ -500,10 +559,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
         return true
       end
-      button = [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{data[:message_id]}_bdid_#{data[:vacancy_id]}" }]
-      text_formation = "Категория: #{vacancy.category_title}\n\n" \
+      button = [
+        [{ text: "Купить поинты #{@user.point <= 5 ? "🪫" : "🔋"}", callback_data: "Поинты" }],
+        [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{data[:message_id]}_bdid_#{data[:vacancy_id]}" }]
+      ]
+      text_formation = "<b>Всего поинтов на счету:</b> #{@user.point + @user.bonus - 1}\n\n" \
+                      "<b>Категория:</b> #{vacancy.category_title}\n\n" \
                       "#{vacancy.description}\n\n" \
-                      "Контакты:\n" \
+                      "<b>Контакты:</b>\n" \
                       "#{vacancy.contact_information}"
                       
       if @user.bonus > 0
@@ -543,9 +606,17 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.edit_message_text(text: text,
                             message_id: message_id,
                             chat_id: @user.platform_id,
-                            reply_markup: {inline_keyboard: [button]})
+                            parse_mode: 'HTML',
+                            reply_markup: {inline_keyboard: button})
       @user.update(data)
     rescue => e 
+      answer_callback_query "Вакансия успешно отправлена ✅", show_alert: true
+      respond_with :message,
+                  text: text,
+                  parse_mode: 'HTML',
+                  reply_markup: {inline_keyboard: button}
+                  
+      @user.update(data)            
       bot.send_message(chat_id: 377884669, text: "update_point_send_messag err: #{e}")
     end
   end

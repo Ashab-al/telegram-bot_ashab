@@ -4,20 +4,24 @@ class TelegramMessageService
   end
 
   def sending_vacancy_to_users(data)
-    text_formation = "Категория: #{data.title}\n\n" \
+    text_formation =  "<b>Категория:</b> #{data.title}\n\n" \
                     "#{data.description}"
     Category.find_by(name: data.category_title).user.find_each do |user|
       begin
         next unless user.bot_status == "works"
         
-        result_send = @bot.send_message(chat_id: user.platform_id, text: text_formation)
-        @bot.edit_message_text(text: text_formation,
+        result_send = @bot.send_message(chat_id: user.platform_id, 
+                                        text: "<b>Всего поинтов на счету:</b> #{user.point + user.bonus}\n\n" + text_formation, 
+                                        parse_mode: 'HTML')
+        @bot.edit_message_text(text: "<b>Всего поинтов на счету:</b> #{user.point + user.bonus}\n\n" + text_formation,
                             message_id: result_send["result"]["message_id"],
                             chat_id: user.platform_id,
+                            parse_mode: 'HTML',
                             reply_markup: {
                               inline_keyboard: [
-                              [{ text: "💎 Получить контакты 💎", callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }],
-                              [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }]
+                              [{ text: "Получить контакт 💎", callback_data: "mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }],
+                              [{ text: "Купить поинты #{user.point <= 5 ? "🪫" : "🔋"}", callback_data: "Поинты" }],
+                              [{ text: "Спам 🤖", callback_data: "spam_mid_#{result_send["result"]["message_id"]}_bdid_#{data["id"]}" }]
                             ]
                           })
         

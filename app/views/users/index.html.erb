@@ -6,22 +6,11 @@
       </h2>
       
       <h2 class="m-8 text-2xl">
-        Всего пользователей в боте: <%= @users.size %>
+        Всего пользователей в боте: 
       </h2>
 
       <% Category.all.each_with_index do |category, index| %>
         <p class="ml-0.5 text-2xl"><%= index+1%>. <%= category.name%>: <%= category.user.size%> </p>
-      <% end %>
-      <h2 class="m-8 text-4xl font-medium">Список пользователей:</h2>
-      <% User.all.each_with_index do |user, index| %>
-        <p>
-          <%= index + 1 %>. Дата: <%= user.created_at.strftime("%d-%m-%Y %H:%M:%S") %> | 
-          Статус бота: <%= user.bot_status %> | 
-          <%= user.name %> | 
-          @<%= user.username %>  | 
-          Поинты: <%= user.point %> | 
-          Бонусные: <%= user.bonus %>
-        </p>
       <% end %>
     </div>
   </div>  
