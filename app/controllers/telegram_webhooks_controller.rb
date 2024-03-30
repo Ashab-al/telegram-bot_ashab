@@ -269,11 +269,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                             reply_markup: {
                               inline_keyboard: [
                                 [{ text: '💎 10 поинтов - 60₽', callback_data: '10 поинтов' }],
-                                [{ text: '💎 30 поинтов - 150₽', callback_data: '30 поинтов' }],
-                                [{ text: '💎 50 поинтов - 225₽', callback_data: '50 поинтов' }],
-                                [{ text: '💎 100 поинтов - 400₽', callback_data: '100 поинтов' }],
-                                [{ text: '💎 150 поинтов - 525₽', callback_data: '150 поинтов' }],
-                                [{ text: '💎 200 поинтов - 600₽', callback_data: '200 поинтов' }]
+                                [{ text: '💎 30 поинтов - 171₽', callback_data: '30 поинтов' }],
+                                [{ text: '💎 50 поинтов - 270₽', callback_data: '50 поинтов' }],
+                                [{ text: '💎 100 поинтов - 510₽', callback_data: '100 поинтов' }],
+                                [{ text: '💎 150 поинтов - 720₽', callback_data: '150 поинтов' }],
+                                [{ text: '💎 200 поинтов - 900₽', callback_data: '200 поинтов' }]
                               ]
                             }            
     rescue => e
@@ -359,27 +359,27 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
             :quantity_points => 10
           },
           "30 поинтов": {
-            :cost => 150.00,
+            :cost => 171.00,
             :description => "30 поинтов",
             :quantity_points => 30
           },
           "50 поинтов": {
-            :cost => 225.00,
+            :cost => 270.00,
             :description => "50 поинтов",
             :quantity_points => 50
           },
           "100 поинтов": {
-            :cost => 400.00,
+            :cost => 510.00,
             :description => "100 поинтов",
             :quantity_points => 100
           },
           "150 поинтов": {
-            :cost => 525.00,
+            :cost => 720.00,
             :description => "150 поинтов",
             :quantity_points => 150
           },
           "200 поинтов": {
-            :cost => 600.00,
+            :cost => 900.00,
             :description => "200 поинтов",
             :quantity_points => 200
           }
