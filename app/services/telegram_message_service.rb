@@ -25,12 +25,20 @@ class TelegramMessageService
                             ]
                           })
         
-      rescue => e
+      rescue Telegram::Bot::Forbidden => e
         user.update(bot_status: "bot_blocked")
-        text_err = "TelegramMessageService sending_vacancy_to_users err: #{e}\n" \
+        text_err = "TelegramMessageService sending_vacancy_to_users err (rescue Telegram::Bot::Forbidden): #{e}\n" \
                   "Имя пользователя: #{user.name}\n" \
                   "platform_id: #{user.platform_id}\n" \
                   "Статус бота поменялся: #{user.bot_status}"
+        @bot.send_message(chat_id: 377884669, text: text_err)
+        Rails.logger.error(text_err)
+
+      rescue => e
+        text_err = "TelegramMessageService sending_vacancy_to_users err: #{e}\n" \
+                  "Имя пользователя: #{user.name}\n" \
+                  "platform_id: #{user.platform_id}\n" \
+                  "Статус бота: #{user.bot_status}"
         @bot.send_message(chat_id: 377884669, text: text_err)
         Rails.logger.error(text_err)
       end

@@ -466,7 +466,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         platform_id: data['from']['id'],
         name: data['from']['first_name'] || "",
         point: 0,
-        bonus: 2
+        bonus: 10
       }
     rescue => e 
       bot.send_message(chat_id: 377884669, text: "user_params err: #{e}")
