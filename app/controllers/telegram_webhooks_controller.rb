@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative '../services/pagination_service'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
@@ -9,23 +10,23 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                    :checking_subscribed_category, :subscribe_user_to_category,
                                    :unsubscribe_user_from_category, :open_a_vacancy,
                                    :update_point_send_messag, :menu, :my_chat_member, 
-                                   :main_menu!] # потом ограничить , only: [:example] или  except: [:example]
+                                   :main_menu!, :send_vacancy_start, :send_vacancy_next] # потом ограничить , only: [:example] или  except: [:example]
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные
-  # {"id":377884669,"first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
+  # {"id":3778846691,"first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
   # "username":"AshabAl","type":"private"}
 
   # from - выдает такие данные
-  # {"id":377884669,"is_bot":false,
+  # {"id":3778846691,"is_bot":false,
   # "first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
   # "username":"AshabAl","language_code":"ru","is_premium":true}
 
   # payload - выдает такие данные
-  # {"message_id":335409,"from":{"id":377884669,"is_bot":false,
+  # {"message_id":335409,"from":{"id":3778846691,"is_bot":false,
   # "first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
   # "username":"AshabAl","language_code":"ru","is_premium":true},
-  # "chat":{"id":377884669,
+  # "chat":{"id":3778846691,
   # "first_name":"Асхаб Алхазуров | Чат-боты | Python | Ruby",
   # "username":"AshabAl","type":"private"},
   # "date":1698134713,"text":"asd"}
@@ -37,7 +38,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       choice_help
       menu
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
     end
   end
 
@@ -55,7 +56,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                           "Всего пользователей в боте: #{User.all.size}"
     
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "update_bonus_users err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_bonus_users err: #{e}")
     end
   end
 
@@ -69,7 +70,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                     "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
                             message_id: data[:message_id],
                             chat_id: @user.platform_id  
-        bot.send_message(chat_id: 377884669, text: "Оплата прошла успешно:\n\n" \
+        bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Оплата прошла успешно:\n\n" \
                                                     "Клиент: #{@user.name}\n" \
                                                     "Поинты: #{result_check_paid[:metadata][:quantity_points].to_i}")                     
         points              
@@ -81,7 +82,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       end
 
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "payment_verification err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "payment_verification err: #{e}")
     end
   end
 
@@ -146,7 +147,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                               ]
                             } 
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "create_payment err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "create_payment err: #{e}")
     end
   end
 
@@ -154,7 +155,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     begin
       menu
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "main_menu err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "main_menu err: #{e}")
     end
   end
 
@@ -185,7 +186,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         }
       end
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "menu err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "menu err: #{e}")
     end
   end
 
@@ -218,7 +219,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                   }
       session[:by_points_message_id] = points_message['result']['message_id']
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "points err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "points err: #{e}")
     end
   end
 
@@ -244,7 +245,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         respond_with :message, text: "Напишите свою почту в этот чат"
       end
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "get_the_mail err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "get_the_mail err: #{e}")
     end
   end
 
@@ -256,7 +257,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         get_the_mail
       end
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "by_points err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "by_points err: #{e}")
     end
   end
 
@@ -277,7 +278,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                               ]
                             }            
     rescue => e
-      bot.send_message(chat_id: 377884669, text: "choice_tarif err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_tarif err: #{e}")
     end
   end
 
@@ -293,7 +294,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       'Готовы к новым возможностям? "Категории 🧲" - и вперёд!' 
 
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "choice_help err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_help err: #{e}")
     end
   end
 
@@ -306,7 +307,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       respond_with :message, text: "(Еще в разработке)\n\n" \
                                   "Количество пользователей в боте:\n" + text     
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "marketing err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "marketing err: #{e}")
     end
   end
 
@@ -321,7 +322,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "choice_category err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_category err: #{e}")
     end
   end
   
@@ -406,13 +407,71 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           :message_id => match_data[0][1]
         })
         return true
+      when "Получить вакансии"
+        send_vacancy_start # Доработка
+        return true
+      when "Получить еще 10"
+        send_vacancy_next
+        return true
       end
 
       category = Category.find_by(name: data_callback)
       checking_subscribed_category(category.id) if category
 
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "callback_query err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "callback_query err: #{e.inspect}")
+    end
+  end
+
+  def send_vacancy_start
+    subscribed_categories_name = @subscribed_categories.map(&:name)
+    vacancy_list = Vacancy.where(
+      category_title: subscribed_categories_name)
+       .where.not(contact_information: Blacklist.where('complaint_counter > ?', 3).pluck(:contact_information))
+       .where(created_at: 7.days.ago..Time.now
+    )
+    if subscribed_categories_name.empty? 
+      answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
+                              show_alert: true
+      return false
+    elsif vacancy_list.empty?
+      answer_callback_query "📜 Вакансий не найдено 😞", 
+                              show_alert: true
+      return false
+    end
+
+    session[:vacancy_list_start_number] = 0
+    paginationservice = PaginationService.new(@user, vacancy_list.reverse, session[:vacancy_list_start_number])
+
+    session[:vacancy_list_start_number] = paginationservice.send_vacancy_pagination
+  end
+
+  def send_vacancy_next
+    subscribed_categories_name = @subscribed_categories.map(&:name)
+    vacancy_list = Vacancy.where(
+      category_title: subscribed_categories_name)
+       .where.not(contact_information: Blacklist.where('complaint_counter > ?', 3).pluck(:contact_information))
+       .where(created_at: 7.days.ago..Time.now
+    )
+    if subscribed_categories_name.empty? 
+      answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
+                              show_alert: true
+      return false
+    elsif vacancy_list.empty?
+      answer_callback_query "📜 Вакансий не найдено 😞", 
+                              show_alert: true
+      return false
+    elsif session[:vacancy_list_start_number].nil?
+      choice_category
+      return false
+    end
+
+    paginationservice = PaginationService.new(@user, vacancy_list.reverse, session[:vacancy_list_start_number])
+    if session[:vacancy_list_start_number] >= vacancy_list.size 
+      answer_callback_query "📜 Все вакансии из ваших интересующих категорий успешно отправлены! ✅", 
+                                show_alert: true
+    else
+      session[:vacancy_list_start_number] = paginationservice.send_vacancy_pagination
     end
   end
 
@@ -420,7 +479,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     begin
       menu
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "message err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "message err: #{e}")
     end
   end
 
@@ -428,7 +487,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     begin
       @user.update({:bot_status => "bot_blocked"})
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "my_chat_member err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "my_chat_member err: #{e}")
     end
   end
 
@@ -444,10 +503,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           text: "Новый пользователь в боте\n\n" \
                 "Имя: #{@user.name}\n" \
                 "username: @#{@user.username}\n\n" \
-                "Всего пользователей в боте: #{User.all.size}"
+                "Всего пользователей в боте: #{User.all.size}\n" \
+                "Все у кого статус work: #{User.where(bot_status: "works").size}\n" \
+                "Все у кого статус bot_blocked: #{User.where(bot_status: "bot_blocked").size}"
           )
         else
-          bot.send_message(chat_id: 377884669, 
+          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, 
           text: "Пользователь не сохранился в бд #{payload}")
         end
       end
@@ -455,7 +516,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       @subscribed_categories = subscriptions.map(&:category)
       @user.update({:bot_status => "works"}) if @user.bot_status != "works"
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "load_user err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "load_user err: #{e}")
     end
   end
 
@@ -466,10 +527,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         platform_id: data['from']['id'],
         name: data['from']['first_name'] || "",
         point: 0,
-        bonus: 10
+        bonus: 5
       }
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "user_params err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "user_params err: #{e}")
     end
   end
 
@@ -492,10 +553,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           couple_button = []
         end
       end
-
+      buttons << [{text: "Получить вакансии 🔍", callback_data: "Получить вакансии"}]
       {inline_keyboard: buttons}
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "formation_of_category_buttons err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
     end
   end
 
@@ -510,7 +571,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                             reply_markup: formation_of_category_buttons)
 
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "edit_message_category err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "edit_message_category err: #{e}")
     end
   end
 
@@ -529,7 +590,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       end
       edit_message_category
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "checking_subscribed_category err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "checking_subscribed_category err: #{e}")
     end
   end
 
@@ -537,7 +598,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     begin
       @user.subscriptions.create(category: category)
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "subscribe_user_to_category err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "subscribe_user_to_category err: #{e}")
     end
   end
 
@@ -545,7 +606,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     begin
       @user.subscriptions.find_by(category: category)&.destroy
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "unsubscribe_user_from_category err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "unsubscribe_user_from_category err: #{e}")
     end
   end
 
@@ -563,8 +624,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         [{ text: "Купить поинты #{@user.point <= 5 ? "🪫" : "🔋"}", callback_data: "Поинты" }],
         [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{data[:message_id]}_bdid_#{data[:vacancy_id]}" }]
       ]
-      text_formation = "<b>Всего поинтов на счету:</b> #{@user.point + @user.bonus - 1}\n\n" \
-                      "<b>Категория:</b> #{vacancy.category_title}\n\n" \
+      text_formation = "<b>Категория:</b> #{vacancy.category_title}\n" \
+                      "<b>Всего поинтов на счету:</b> #{@user.point + @user.bonus - 1}\n\n" \
                       "#{vacancy.description}\n\n" \
                       "<b>Контакты:</b>\n" \
                       "#{vacancy.contact_information}"
@@ -581,7 +642,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                               show_alert: true
       end
     rescue => e 
-      bot.send_message(chat_id: 377884669, text: "open_a_vacancy err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "open_a_vacancy err: #{e}")
     end
   end
 
@@ -617,7 +678,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                   reply_markup: {inline_keyboard: button}
                   
       @user.update(data)            
-      bot.send_message(chat_id: 377884669, text: "update_point_send_messag err: #{e}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_point_send_messag Вакансия успешно отправлена ✅ err: #{e}")
     end
   end
 
