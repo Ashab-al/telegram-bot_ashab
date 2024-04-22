@@ -3,6 +3,7 @@ module SendVacancyService
     result_send = bot.send_message(chat_id: user.platform_id, 
                                         text: text, 
                                         parse_mode: 'HTML')
+    sleep(0.1)
     bot.edit_message_text(text: text,
                         message_id: result_send["result"]["message_id"],
                         chat_id: user.platform_id,

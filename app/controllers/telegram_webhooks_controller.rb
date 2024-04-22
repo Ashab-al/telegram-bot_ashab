@@ -410,7 +410,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when "Получить вакансии"
         send_vacancy_start # Доработка
         return true
-      when "Получить еще 10"
+      when "more_vacancies"
         send_vacancy_next
         return true
       end
@@ -427,9 +427,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     subscribed_categories_name = @subscribed_categories.map(&:name)
     vacancy_list = Vacancy.where(
       category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter > ?', 3).pluck(:contact_information))
+       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 3).pluck(:contact_information))
        .where(created_at: 7.days.ago..Time.now
     )
+
     if subscribed_categories_name.empty? 
       answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
                               show_alert: true
@@ -448,11 +449,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def send_vacancy_next
     subscribed_categories_name = @subscribed_categories.map(&:name)
-    vacancy_list = Vacancy.where(
-      category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter > ?', 3).pluck(:contact_information))
-       .where(created_at: 7.days.ago..Time.now
-    )
+    vacancy_list = Vacancy.where(category_title: subscribed_categories_name)
+       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 3).pluck(:contact_information))
+       .where(created_at: 7.days.ago..Time.now)
+    
     if subscribed_categories_name.empty? 
       answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
                               show_alert: true
@@ -467,7 +467,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
 
     paginationservice = PaginationService.new(@user, vacancy_list.reverse, session[:vacancy_list_start_number])
-    if session[:vacancy_list_start_number] >= vacancy_list.size 
+    if session[:vacancy_list_start_number] >= vacancy_list.count 
       answer_callback_query "📜 Все вакансии из ваших интересующих категорий успешно отправлены! ✅", 
                                 show_alert: true
     else
