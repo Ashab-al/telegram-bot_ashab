@@ -427,7 +427,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     subscribed_categories_name = @subscribed_categories.map(&:name)
     vacancy_list = Vacancy.where(
       category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 3).pluck(:contact_information))
+       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 1).pluck(:contact_information))
        .where(created_at: 7.days.ago..Time.now
     )
 
@@ -450,7 +450,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def send_vacancy_next
     subscribed_categories_name = @subscribed_categories.map(&:name)
     vacancy_list = Vacancy.where(category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 3).pluck(:contact_information))
+       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 1).pluck(:contact_information))
        .where(created_at: 7.days.ago..Time.now)
     
     if subscribed_categories_name.empty? 
@@ -504,7 +504,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                 "Имя: #{@user.name}\n" \
                 "username: @#{@user.username}\n\n" \
                 "Всего пользователей в боте: #{User.all.size}\n" \
-                "Все у кого статус work: #{User.where(bot_status: "works").size}\n" \
+                "Все у кого статус works: #{User.where(bot_status: "works").size}\n" \
                 "Все у кого статус bot_blocked: #{User.where(bot_status: "bot_blocked").size}"
           )
         else
