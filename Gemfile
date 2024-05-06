@@ -35,6 +35,7 @@ gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
 gem 'tomo'
 gem 'sidekiq'
+gem 'mutations'
 # end
 
 group :pry do
