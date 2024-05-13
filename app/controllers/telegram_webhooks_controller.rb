@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require_relative '../services/pagination_service'
-require_relative '../mutations/yookassa/create_payment'
+# require_relative '../mutations/payment/make_payment'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
@@ -69,7 +69,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def create_payment(data)
     begin 
-      result_create_payment = CreatePayment.run({
+      result_create_payment = Payment::MakePayment.run({
         value: "#{data[:cost]}",
         description: "#{data[:description]}",
         platform_id: "#{@user.platform_id}",
