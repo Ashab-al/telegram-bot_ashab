@@ -1,16 +1,14 @@
 # frozen_string_literal: true
 require_relative '../services/pagination_service'
+require_relative '../mutations/yookassa/create_payment'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   
-  before_action :load_user, only: [:start!, :payment_verification, :create_payment, :points,
-                                   :by_points, :choice_tarif, :callback_query, 
-                                   :formation_of_category_buttons, :edit_message_category,
-                                   :checking_subscribed_category, :subscribe_user_to_category,
-                                   :unsubscribe_user_from_category, :open_a_vacancy,
-                                   :update_point_send_messag, :menu, :my_chat_member, 
-                                   :main_menu!, :send_vacancy_start, :send_vacancy_next] # потом ограничить , only: [:example] или  except: [:example]
+  before_action :load_user, except: [:update_bonus_users!, :total_vacancies_sent, :get_the_mail,
+                                     :choice_help, :marketing, :choice_category, 
+                                     :message, :user_params, :spam_vacancy, :session_key]
+  
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные
@@ -42,23 +40,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def update_bonus_users!
-    begin
-      respond_with :message,
-                    text: "Начало обновления бонусов"
-
-      users_to_update = User.where('bonus < ?', 2)
-      respond_with :message,
-                    text: "Пользователи которые нашлись: #{users_to_update.to_a.size}"
-      users_to_update.update_all(bonus: 2)
-      respond_with :message,
-                    text: "Обновление бонусов завершилось успешно!\n\n" \
-                          "Всего пользователей в боте: #{User.all.size}"
-    
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_bonus_users err: #{e}")
-    end
-  end
 
   def payment_verification(data)
     begin 
@@ -88,64 +69,40 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def create_payment(data)
     begin 
-      pay_data = {
-        amount: {
-            value:    data[:cost],
-            currency: 'RUB'
-        },
-        capture:      true,
-        confirmation: {
-            type:       'redirect',
-            return_url: 'https://t.me/infobizaa_bot'
-        },
-        receipt: {
-          customer: {
-            email: "#{data[:email]}"
-          },
-          items: [
-            {
-              "description": "#{data[:description]}",
-              "quantity": "1",
-              "amount": {
-                "value": "#{data[:cost]}",
-                "currency": "RUB"
-              },
-              "vat_code": "1"
-            }
-          ]
-        },
-        metadata: {
-          platform_id: "#{@user.platform_id}",
-          email: "#{@user.email}",
-          quantity_points: "#{data[:quantity_points]}"
-        }
-      }
-      payment = Yookassa.payments.create(payment: pay_data)
+      result_create_payment = CreatePayment.run({
+        value: "#{data[:cost]}",
+        description: "#{data[:description]}",
+        platform_id: "#{@user.platform_id}",
+        email: "#{@user.email}",
+        quantity_points: "#{data[:quantity_points]}"
+      })
 
-      result_send_message = respond_with :message,
+      if result_create_payment.success?
+        result_send_message = respond_with :message,
                                           text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
                                                 "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
                                                 "💎 Количество поинтов: #{data[:quantity_points]}\n" \
                                                 "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
-                                                "Ссылка для оплаты - #{payment.confirmation.confirmation_url}",
+                                                "Ссылка для оплаты - #{result_create_payment.result.confirmation.confirmation_url}",
                                           reply_markup: {
-                                            inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{payment.id}" }]]
+                                            inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{result_create_payment.result.id}" }]]
                                           }
-      session[:create_payment_message_id] = result_send_message['result']['message_id'] 
+        session[:create_payment_message_id] = result_send_message['result']['message_id'] 
 
-      bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
-                                  "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
-                                  "💎 Количество поинтов: #{data[:quantity_points]}\n" \
-                                  "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
-                                  "Ссылка для оплаты - #{payment.confirmation.confirmation_url}",
-                            message_id: result_send_message['result']['message_id'],
-                            chat_id: @user.platform_id,
-                            reply_markup: {
-                              inline_keyboard: [
-                                [{ text: 'Проверить платеж', 
-                                  callback_data: "pay_id_#{payment.id}_mes_id_#{result_send_message['result']['message_id']}" }]
-                              ]
-                            } 
+        bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
+                                    "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
+                                    "💎 Количество поинтов: #{data[:quantity_points]}\n" \
+                                    "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
+                                    "Ссылка для оплаты - #{result_create_payment.result.confirmation.confirmation_url}",
+                              message_id: result_send_message['result']['message_id'],
+                              chat_id: @user.platform_id,
+                              reply_markup: {
+                                inline_keyboard: [
+                                  [{ text: 'Проверить платеж', 
+                                    callback_data: "pay_id_#{result_create_payment.result.id}_mes_id_#{result_send_message['result']['message_id']}" }]
+                                ]
+                              } 
+      end
     rescue => e
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "create_payment err: #{e}")
     end
@@ -387,7 +344,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         }
         create_payment({
           :cost => tarifs[:"#{data_callback}"][:cost],
-          :email => @user.email,
           :description => tarifs[:"#{data_callback}"][:description],
           :quantity_points => tarifs[:"#{data_callback}"][:quantity_points]
         })

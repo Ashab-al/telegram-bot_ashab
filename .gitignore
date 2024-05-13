@@ -39,6 +39,8 @@ config/secrets.yml
 config/database.yml
 
 Dockerfile
+docker-compose.yml
+/vendor/*
 
 /config/credentials/production.key
 

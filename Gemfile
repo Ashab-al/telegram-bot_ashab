@@ -35,6 +35,9 @@ gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
 gem 'tomo'
 gem 'sidekiq'
+gem 'mutations'
+gem "graphql"
+gem "graphiql-rails", group: :development
 # end
 
 group :pry do
@@ -67,5 +70,6 @@ group :test do
   gem "rspec-rails"
   gem "rspec-its"
 end
+
 
 
