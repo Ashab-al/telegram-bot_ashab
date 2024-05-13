@@ -169,7 +169,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                   text: "#{from['first_name']}\n\n" \
                         "🔍 Ваш баланс: #{@user.point} \n" \
                         "🎁 Бонусные: #{@user.bonus} \n\n" \
-                        '(Два бонусных поинта предоставляются бесплатно каждые 24 часа)',
+                        'Используйте поинты, чтобы открывать вакансии и расширять свои возможности!',
                   reply_markup: {
                     inline_keyboard: [[{ text: 'Купить поинты',
                                           callback_data: 'Купить поинты' }]]
@@ -199,7 +199,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                                                         
       else 
         save_context :get_the_mail 
-        respond_with :message, text: "Напишите свою почту в этот чат"
+        respond_with :message, text: "Напишите свою почту в этот чат (Почта нужна для отправки чека)"
       end
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "get_the_mail err: #{e}")
@@ -220,8 +220,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_tarif
     begin 
-      bot.edit_message_text text: "Ваша почта: #{@user.email}\n\n" \
-                                  "Выберите тариф",
+      bot.edit_message_text text: "Ваш e-mail: #{@user.email}\n\n" \
+                                  "С поинтами вы всегда в плюсе!\n\n" \
+                                  "Выберите подходящий тарифный пакет.",
                             message_id: session[:by_points_message_id],
                             chat_id: @user.platform_id,
                             reply_markup: {
@@ -381,11 +382,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def send_vacancy_start
     subscribed_categories_name = @subscribed_categories.map(&:name)
-    vacancy_list = Vacancy.where(
-      category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 1).pluck(:contact_information))
-       .where(created_at: 7.days.ago..Time.now
-    )
+    vacancy_list = Vacancy.where(category_title: subscribed_categories_name).
+                    where.not(platform_id: Blacklist.pluck(:contact_information)).
+                    where(created_at: 7.days.ago..Time.now).order(created_at: :asc)
 
     if subscribed_categories_name.empty? 
       answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
@@ -405,9 +404,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def send_vacancy_next
     subscribed_categories_name = @subscribed_categories.map(&:name)
-    vacancy_list = Vacancy.where(category_title: subscribed_categories_name)
-       .where.not(contact_information: Blacklist.where('complaint_counter >= ?', 1).pluck(:contact_information))
-       .where(created_at: 7.days.ago..Time.now)
+    vacancy_list = Vacancy.where(category_title: subscribed_categories_name).
+                    where.not(platform_id: Blacklist.pluck(:contact_information)).
+                    where(created_at: 7.days.ago..Time.now).order(created_at: :asc)
     
     if subscribed_categories_name.empty? 
       answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
