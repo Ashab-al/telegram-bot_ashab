@@ -1,3 +1,5 @@
+require 'yookassa'
+
 class CreatePayment < Mutations::Command
   required do     
     integer :value
