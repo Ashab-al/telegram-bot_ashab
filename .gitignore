@@ -40,7 +40,7 @@ config/database.yml
 
 Dockerfile
 docker-compose.yml
-/vendor/*
+/vendor/cache/
 
 /config/credentials/production.key
 
