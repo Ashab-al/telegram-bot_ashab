@@ -38,6 +38,7 @@ gem 'sidekiq'
 gem 'mutations'
 gem "graphql"
 gem "graphiql-rails", group: :development
+gem 'dotenv-rails'
 # end
 
 group :pry do

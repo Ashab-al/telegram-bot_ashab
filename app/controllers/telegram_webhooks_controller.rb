@@ -39,7 +39,56 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
     end
   end
+  def pre_checkout_query(pay_info)
+    uri = "https://api.telegram.org/bot6733083435:AAEe5p9zB1ssYcxwbqwV4_4WPbFJk2TVvHk/answerPreCheckoutQuery"
+    body = {
+      pre_checkout_query_id: pay_info["id"],
+      ok: true
+    }
 
+    headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+    puts body
+    puts pay_info
+    begin
+      response = RestClient.post(uri, body.to_json, headers)
+      puts response.body
+    rescue RestClient::ExceptionWithResponse => e
+      puts e.response.body
+    end
+    
+  end
+
+  def pay!
+    respond_with :message, text: "Тест оплаты"
+    uri = "https://api.telegram.org/bot6733083435:AAEe5p9zB1ssYcxwbqwV4_4WPbFJk2TVvHk/sendInvoice"
+
+    body = {
+      chat_id: @user.platform_id,
+      title: "Тестовый заголовок",
+      description: "Тестовое описание",
+      provider_token: "381764678:TEST:87813",
+      currency: "RUB",
+      payload: @user.platform_id.to_i * rand(14..999999999),
+      prices: [{label: "Покупка поинтов", amount: 100 * 100}],
+      max_tip_amount: 1000000
+    }.to_json
+
+    headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+    puts body
+
+    begin
+      response = RestClient.post(uri, body, headers)
+      puts response.body
+    rescue RestClient::ExceptionWithResponse => e
+      puts e.response.body
+    end
+  end
 
   def payment_verification(data)
     begin 
