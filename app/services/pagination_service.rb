@@ -38,7 +38,7 @@ class PaginationService
                                         parse_mode: 'HTML',
                                         reply_markup: {
                           inline_keyboard: [
-                          [{ text: "Получить еще 15 ➡️", callback_data: "more_vacancies" }],
+                          [{ text: "Получить еще #{batch_size} ➡️", callback_data: "more_vacancies" }],
                           [{ text: "Купить поинты #{@user.point <= 5 ? "🪫" : "🔋"}", callback_data: "Поинты" }]
                         ]
                       })
