@@ -11,7 +11,7 @@ class PaginationService
     @batch_start = batch_start
   end
 
-  def send_vacancy_pagination(batch_size=15)
+  def send_vacancy_pagination(batch_size=3)
     batch = @vacancy_list.to_a.slice(@batch_start, batch_size)
     return @bot.send_message(chat_id: @user.platform_id, text: "Вакансий отправлено #{@vacancy_list.index(batch.last) + 1} из #{@vacancy_list.size}") if batch.nil?
 

@@ -5,7 +5,7 @@ require_relative '../services/pagination_service'
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   
-  before_action :load_user, except: [:update_bonus_users!, :total_vacancies_sent, :get_the_mail,
+  before_action :load_user, except: [:update_bonus_users!, :total_vacancies_sent,
                                      :choice_help, :marketing, :choice_category, 
                                      :message, :user_params, :spam_vacancy, :session_key]
   
@@ -30,81 +30,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   # "date":1698134713,"text":"asd"}
 
   # session[:user]
+  
 
   def start!(*)
     begin
       choice_help
-      menu
+      menu 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
-    end
-  end
-
-
-  def payment_verification(data)
-    begin 
-      result_check_paid = Yookassa.payments.find(payment_id: data[:payment_id])
-      if result_check_paid[:status] == "succeeded"
-        @user.update({:point => @user.point + result_check_paid[:metadata][:quantity_points].to_i})
-        answer_callback_query 'Платеж успешно прошёл! 🔋🎉', show_alert: true
-        bot.edit_message_text text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
-                                    "Вам зачислено #{result_check_paid[:metadata][:quantity_points].to_i} поинтов. 💳\n\n",
-                            message_id: data[:message_id],
-                            chat_id: @user.platform_id  
-        bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Оплата прошла успешно:\n\n" \
-                                                    "Клиент: #{@user.name}\n" \
-                                                    "Поинты: #{result_check_paid[:metadata][:quantity_points].to_i}")                     
-        points              
-      else
-        respond_with :message,
-                    text: "Похоже, ваш платеж не был подтвержден. 😕 \n\n" \
-                          "Если вы уже произвели оплату и видите это сообщение, пожалуйста, подождите 5 минут. ⏳ И попробуйте снова нажать на кнопку \"Проверить платеж\"\n\n" \
-                          "Если вы подождали 5 минут и проблема не решена, обратитесь к администратору @AshabAl. 📬"                 
-      end
-
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "payment_verification err: #{e}")
-    end
-  end
-
-  def create_payment(data)
-    begin 
-      result_create_payment = Payment::MakePayment.run({
-        value: "#{data[:cost]}",
-        description: "#{data[:description]}",
-        platform_id: "#{@user.platform_id}",
-        email: "#{@user.email}",
-        quantity_points: "#{data[:quantity_points]}"
-      })
-
-      if result_create_payment.success?
-        result_send_message = respond_with :message,
-                                          text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
-                                                "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
-                                                "💎 Количество поинтов: #{data[:quantity_points]}\n" \
-                                                "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
-                                                "Ссылка для оплаты - #{result_create_payment.result.confirmation.confirmation_url}",
-                                          reply_markup: {
-                                            inline_keyboard: [[{ text: 'Проверить платеж', callback_data: "pay_id_#{result_create_payment.result.id}" }]]
-                                          }
-        session[:create_payment_message_id] = result_send_message['result']['message_id'] 
-
-        bot.edit_message_text text: "Не забудьте нажать кнопку \"Проверить платеж\" после совершения оплаты.\n" \
-                                    "Это необходимо для подтверждения вашей транзакции. 🌟 \n\n" \
-                                    "💎 Количество поинтов: #{data[:quantity_points]}\n" \
-                                    "🔋Стоимость: #{data[:cost].to_i}₽\n\n" \
-                                    "Ссылка для оплаты - #{result_create_payment.result.confirmation.confirmation_url}",
-                              message_id: result_send_message['result']['message_id'],
-                              chat_id: @user.platform_id,
-                              reply_markup: {
-                                inline_keyboard: [
-                                  [{ text: 'Проверить платеж', 
-                                    callback_data: "pay_id_#{result_create_payment.result.id}_mes_id_#{result_send_message['result']['message_id']}" }]
-                                ]
-                              } 
-      end
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "create_payment err: #{e}")
     end
   end
 
@@ -170,73 +103,19 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                         "🔍 Ваш баланс: #{@user.point} \n" \
                         "🎁 Бонусные: #{@user.bonus} \n\n" \
                         'Используйте поинты, чтобы открывать вакансии и расширять свои возможности!',
-                  reply_markup: {
-                    inline_keyboard: [[{ text: 'Купить поинты',
-                                          callback_data: 'Купить поинты' }]]
-                  }
+                        reply_markup: {
+                          inline_keyboard: [
+                            [{ text: '💎 10 поинтов - 30 ⭐️', callback_data: '10 поинтов' }],
+                            [{ text: '💎 30 поинтов - 85 ⭐️', callback_data: '30 поинтов' }],
+                            [{ text: '💎 50 поинтов - 135 ⭐️', callback_data: '50 поинтов' }],
+                            [{ text: '💎 100 поинтов - 255 ⭐️', callback_data: '100 поинтов' }],
+                            [{ text: '💎 150 поинтов - 360 ⭐️', callback_data: '150 поинтов' }],
+                            [{ text: '💎 200 поинтов - 450 ⭐️', callback_data: '200 поинтов' }]
+                          ]
+                        } 
       session[:by_points_message_id] = points_message['result']['message_id']
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "points err: #{e}")
-    end
-  end
-
-  def get_the_mail(*args)
-    begin
-      if args.any?
-        session[:email] = args.first
-        case session[:email]
-          when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
-            get_the_mail_message = respond_with :message, 
-                    text: "Ваша почта: #{args.first}",
-                    reply_markup: {inline_keyboard: [[{ text: 'Поменять почту', callback_data: 'Поменять почту' }],
-                                                      [{ text: 'Все четко✅', callback_data: 'Все четко' }]]}
-            session[:by_points_message_id] = get_the_mail_message['result']['message_id']
-            
-          else  
-            save_context :get_the_mail 
-            respond_with :message, text: "Некорректная почта. Напишите еще раз"
-        end
-                                                                        
-      else 
-        save_context :get_the_mail 
-        respond_with :message, text: "Напишите свою почту в этот чат (Почта нужна для отправки чека)"
-      end
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "get_the_mail err: #{e}")
-    end
-  end
-
-  def by_points
-    begin
-      if @user.email
-        choice_tarif
-      else
-        get_the_mail
-      end
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "by_points err: #{e}")
-    end
-  end
-
-  def choice_tarif
-    begin 
-      bot.edit_message_text text: "Ваш e-mail: #{@user.email}\n\n" \
-                                  "С поинтами вы всегда в плюсе!\n\n" \
-                                  "Выберите подходящий тарифный пакет.",
-                            message_id: session[:by_points_message_id],
-                            chat_id: @user.platform_id,
-                            reply_markup: {
-                              inline_keyboard: [
-                                [{ text: '💎 10 поинтов - 60₽', callback_data: '10 поинтов' }],
-                                [{ text: '💎 30 поинтов - 171₽', callback_data: '30 поинтов' }],
-                                [{ text: '💎 50 поинтов - 270₽', callback_data: '50 поинтов' }],
-                                [{ text: '💎 100 поинтов - 510₽', callback_data: '100 поинтов' }],
-                                [{ text: '💎 150 поинтов - 720₽', callback_data: '150 поинтов' }],
-                                [{ text: '💎 200 поинтов - 900₽', callback_data: '200 поинтов' }]
-                              ]
-                            }            
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_tarif err: #{e}")
     end
   end
 
@@ -292,81 +171,76 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when 'Выбрать категории'
         choice_category
         return true
-      when 'Купить поинты'
-        by_points
-        return true
+      
       when 'Поинты'
         points
         return true
-      when 'Поменять почту'
-        get_the_mail
-        return true
-      when 'Все четко'
-        case session[:email]
-        when /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/
-          @user.update({:email => session[:email]})
-          choice_tarif
-        else
-          get_the_mail
-        end       
-        return true
+
       when /^\d{1,3} поинтов$/
-        tarifs = {
-          "10 поинтов": {
-            :cost => 60.00,
-            :description => "10 поинтов",
-            :quantity_points => 10
-          },
-          "30 поинтов": {
-            :cost => 171.00,
-            :description => "30 поинтов",
-            :quantity_points => 30
-          },
-          "50 поинтов": {
-            :cost => 270.00,
-            :description => "50 поинтов",
-            :quantity_points => 50
-          },
-          "100 поинтов": {
-            :cost => 510.00,
-            :description => "100 поинтов",
-            :quantity_points => 100
-          },
-          "150 поинтов": {
-            :cost => 720.00,
-            :description => "150 поинтов",
-            :quantity_points => 150
-          },
-          "200 поинтов": {
-            :cost => 900.00,
-            :description => "200 поинтов",
-            :quantity_points => 200
+          tarifs = {
+            "10 поинтов": {
+              :cost => 30,
+              :description => "10 поинтов",
+              :points => 10
+            },
+            "30 поинтов": {
+              :cost => 85,
+              :description => "30 поинтов",
+              :points => 30
+            },
+            "50 поинтов": {
+              :cost => 135,
+              :description => "50 поинтов",
+              :points => 50
+            },
+            "100 поинтов": {
+              :cost => 255,
+              :description => "100 поинтов",
+              :points => 100
+            },
+            "150 поинтов": {
+              :cost => 360,
+              :description => "150 поинтов",
+              :points => 150
+            },
+            "200 поинтов": {
+              :cost => 450,
+              :description => "200 поинтов",
+              :points => 200
+            }
           }
-        }
-        create_payment({
-          :cost => tarifs[:"#{data_callback}"][:cost],
-          :description => tarifs[:"#{data_callback}"][:description],
-          :quantity_points => tarifs[:"#{data_callback}"][:quantity_points]
-        })
+          begin
+            return false unless chat["type"] == "private"
+            
+            outcome = Payment::CreateInteractor.run(
+              {
+              :product_name => tarifs[:"#{data_callback}"][:description],
+              :description => tarifs[:"#{data_callback}"][:description],
+              :price => tarifs[:"#{data_callback}"][:cost],
+              :chat_id => "#{@user.platform_id}",
+              :bot => bot,
+              :title => "infobizaa_bot 💎 #{tarifs[:"#{data_callback}"][:description]}",
+              :points => tarifs[:"#{data_callback}"][:points]
+              })
+          rescue => e 
+            bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Payment::CreateInteractor err: #{e}")
+          end
         return true
+
       when /^mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
         return true
+
       when /^spam_mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         spam_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
         return true
-      when /pay_id_\S+/
-        match_data = data_callback.scan(/pay_id_(\w+-\w+-\w+-\w+-\w+)_.*mes_id_(\d+)/)
-        payment_verification({
-          :payment_id => match_data[0][0],
-          :message_id => match_data[0][1]
-        })
-        return true
+
       when "Получить вакансии"
         send_vacancy_start # Доработка
         return true
+
       when "more_vacancies"
         send_vacancy_next
         return true
@@ -377,6 +251,32 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "callback_query err: #{e.inspect}")
+    end
+  end
+
+  def pre_checkout_query(data)
+    begin
+      bot.answer_pre_checkout_query(
+        pre_checkout_query_id: data["id"],
+        ok: true
+      )
+
+      @user.update({:point => @user.point + data["invoice_payload"].to_i})
+            
+      bot.send_message text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
+                              "Вам зачислено #{data["invoice_payload"]} поинтов. 💳\n\n",
+                          message_id: data[:message_id],
+                          chat_id: @user.platform_id  
+      
+
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Оплата прошла успешно:\n\n" \
+                                                                                "Клиент: #{@user.name}\n" \
+                                                                                "Поинты: #{data["invoice_payload"]}\n" \
+                                                                                "Звезд заплатили: #{data["total_amount"]}"
+                                                                              )                     
+      
+    rescue => e 
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "pre_checkout_query err: #{e.inspect}")
     end
   end
 
@@ -454,7 +354,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       unless @user
         @user = User.new(user_params(payload))
         if @user.save
-          bot.send_message(chat_id: 377884669, 
+          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, 
           text: "Новый пользователь в боте\n\n" \
                 "Имя: #{@user.name}\n" \
                 "username: @#{@user.username}\n\n" \
@@ -609,7 +509,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       blacklist.complaint_counter = 0
     end
   
-    if blacklist.complaint_counter >= 3
+    if blacklist.complaint_counter >= 2
       answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
     else
       answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
@@ -639,5 +539,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def session_key
     "#{bot.username}:#{from ? "from:#{from['id']}" : "chat:#{chat['id']}"}"
+  end
+
+  def errors_converter(errors)
+    errors.reduce([]) do |errors_list, error| 
+      errors_list << {
+        "attribute" => errors.first.attribute,
+        "name" => errors.first.type,
+        "options" => errors.first.options
+      } 
+    end
   end
 end

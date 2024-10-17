@@ -38,6 +38,8 @@ gem 'sidekiq'
 gem 'mutations'
 gem "graphql"
 gem "graphiql-rails", group: :development
+gem 'active_interaction', '~> 5.3'
+gem 'telegram-bot-types'
 # end
 
 group :pry do
