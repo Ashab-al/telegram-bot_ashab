@@ -20,7 +20,7 @@ class Api::VacancyController < ApplicationController
 
   def blacklist_check(vacancy)
     blacklist = vacancy.source == "tg_chat" ? Blacklist.find_by(:contact_information => vacancy.platform_id) : Blacklist.find_by(:contact_information => vacancy.contact_information)
-    if blacklist && blacklist.complaint_counter >= 3
+    if blacklist && blacklist.complaint_counter >= 2
       return false
     else 
       return true
