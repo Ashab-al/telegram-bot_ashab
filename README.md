@@ -1,50 +1,57 @@
-# Example telegram bot app
+# Вакантист: Telegram-бот для получения вакансий
 
-This app uses [telegram-bot](https://github.com/telegram-bot-rb/telegram-bot) gem.
-Want to see the [bot code](https://github.com/telegram-bot-rb/telegram_bot_app/blob/master/app/controllers/telegram_webhooks_controller.rb)
-first?
+Вакантист — это Telegram-бот, который позволяет пользователям подписываться на вакансии по интересующим категориям и получать уведомления о новых предложениях.
 
-Explore separate commits to check evolution of code.
+## Как работает бот?
 
-Want a clean setup instead?
-Here is [app teamplate](https://github.com/telegram-bot-rb/rails_template) to help you.
+1. Пользователь заходит в бота: [Перейти к рабочему боту](https://t.me/infobizaa_bot).
+2. Нажимает на кнопку «Категории».
+3. Выбирает нужные категории вакансий.
+4. После выбора категорий пользователь сразу получает ранее опубликованные вакансии и начинает получать новые вакансии по выбранным тематикам.
 
+## Установка и запуск проекта
 
-## Run
+Следуйте этим шагам, чтобы запустить бота на своем устройстве:
 
-### Development
+### 1. Настройка бота и ключей
+- Скачайте проект.
+- В файле `config/secrets.yml` добавьте токен вашего Telegram-бота и ID чата, в который будут отправляться ошибки.
 
-```
-bin/rake telegram:bot:poller
-```
+### 2. Установка Ngrok
+- Для работы вебхуков установите Ngrok: [Инструкция по установке Ngrok](https://ngrok.com/docs/getting-started/).
 
-### Production
+### 3. Настройка Docker
+- Файл `docker-compose.yml` для режима разработки должен иметь следующую конфигурацию:
 
-One way is just to run poller. You don't need anything else, just check
-your production secrets & configs. But there is better way: use webhooks.
-
-__You may want to use different token: after you setup the webhook,
-you need to unset it to run development poller again.__
-
-First you need to setup the webhook. There is rake task for it,
-but you're free to set it manually with API call.
-To use rake task you need to set host in `routes.default_url_options`
-for production environment (`config.routes` for Rails < 5).
-There is already such line in the repo in `production.rb`.
-Uncomment it, change the values, and you're ready for:
-
-```
-bin/rake telegram:bot:set_webhook RAILS_ENV=production
-```
-
-Now deploy your app in any way you like. You don't need run anything special for bot,
-but `rails server` as usual. Your rails app will receive webhooks and bypass them
-to bot's controller.
-
-By default session is configured to use FileStore at `Rails.root.join('tmp', 'session_store')`.
-To use it in production make sure to share this folder between releases
-(ex., add to list shared of shared folders in capistrano).
-Read more about different session stores in
-[original readme](https://github.com/telegram-bot-rb/telegram-bot#session).
-
-# telegram-bot_ashab
+  ```yaml
+  services:
+    db:
+      image: postgres
+      volumes:
+        - ./tmp/db:/var/postgresql/data
+      environment:
+        POSTGRES_PASSWORD: password
+    tgbot:
+      build: .
+      command: bash -c "bin/rake telegram:bot:poller"
+      volumes:
+        - .:/chatbottg
+    web:
+      build: .
+      command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=development bundle exec rails s -p 3000 -b '0.0.0.0'"
+      volumes:
+        - .:/chatbottg
+      ports:
+        - "3000:3000"
+      depends_on:
+        - db
+        - tgbot
+    ngrok:
+      image: ngrok/ngrok:latest
+      command:
+        - "http"
+        - "web:3000"  
+      environment:
+        NGROK_AUTHTOKEN: "Ваш_Token"
+      ports:
+        - "4040:4040"
