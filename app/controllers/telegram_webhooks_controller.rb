@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require_relative '../services/pagination_service'
-# require_relative '../mutations/payment/make_payment'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext

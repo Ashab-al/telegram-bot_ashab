@@ -1,6 +1,8 @@
 FROM ruby:3.0.0
 
-RUN apt-get update -qq && apt-get install -y nodejs postgresql-client 
+RUN apt-get update -qq && \ 
+    apt-get install --no-install-recommends -y nodejs postgresql-client build-essential \ 
+    git libpq-dev libvips pkg-config curl gnupg2 nano
     
 
 WORKDIR /chatbottg
