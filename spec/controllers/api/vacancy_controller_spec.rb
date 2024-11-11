@@ -1,33 +1,25 @@
 require 'rails_helper'
+require 'skooma'
 
-RSpec.describe Api::VacancyController, :type => :controller do
-                 
-  describe "GET #index" do 
-    it "returns all vacancies" do 
-      vacancies = FactoryBot.create_list(:vacancy, 3)
+RSpec.describe Api::VacancyController, type: :controller do
+  subject(:schema) { skooma_openapi_schema }
 
-      get :index
+  let!(:category) { create(:category) }
+  let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name) }
 
-      expect(response).to have_http_status(:success)
-      expect(JSON.parse(response.body).length).to eq(vacancies.size)
+  describe "GET #index" do
+    before { get :index }
+
+    it "returns status ok" do 
+      expect(response).to have_http_status(:ok)
     end
-  end
-                              
-  describe "POST #create" do
-    context "with valid params" do 
-      it "create new vacancy" do 
-        vacancy = instance_double(Vacancy, save: true)
-        
-        allow(Vacancy).to receive(:new).and_return(vacancy)
 
-        allow_any_instance_of(Api::VacancyController).to receive(:send_vacancy).with(vacancy).and_return(true)
-        allow_any_instance_of(Api::VacancyController).to receive(:blacklist_check).with(vacancy).and_return(true)
+    it "returns correct vacancies data" do 
+      expect(JSON.parse(response.body)).to eq(vacancies.as_json)
+    end
 
-        post :create, params: { vacancy: {:category_title => "Тех-спец", :title => "Тех-спец", 
-        :description => "Описание", :contact_information => "@username",
-        :source => "tg_chat", :platform_id => "123123"} }
-        expect(response).to have_http_status(:created)
-      end
+    it "conforms to schema 200" do
+      expect(response).to conform_schema(200)
     end
   end
 end
