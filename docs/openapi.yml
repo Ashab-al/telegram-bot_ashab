@@ -1,8 +1,169 @@
-openapi: 3.1.0
+openapi: "3.0.2"
+
 info:
-  title: Example API
+  title: "Апи для Вакантист"
   version: "1.0"
+  
 paths: 
   "/api/get_all_vacancies":
     get: 
-      summary: Get all list vacancies
+      tags: 
+        - "Get All Vacancies"
+      summary: "Get all list vacancies"
+      operationId: GetAllVacancies
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Vacancies list
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: "ID вакансии"
+                    title:
+                      type: string
+                      description: "Категория или название вакансии"
+                    category_title:
+                      type: string
+                      description: "Категория вакансии"
+                    description:
+                      type: string
+                      description: "Описание вакансии"
+                    contact_information:
+                      type: string
+                      description: "Контактная информация"
+                    source:
+                      type: string
+                      description: "Откуда пришла вакансия (тг или другие соц сети)"
+                    platform_id:
+                      type: string
+                      description: "platform id отправителя"
+                example:
+                  - id: 1
+                    title: "Технический специалист"
+                    category_title: "Тех-спец"
+                    description: "Описание вакансии 1"
+                    contact_information: "ТГ - @username"
+                    source: "telegram chat"
+                    platform_id: "123123123"
+                    
+                  - id: 2
+                    title: "Копирайт"
+                    category_title: "Копирайт"
+                    description: "Описание вакансии 2"
+                    contact_information: "ТГ - @username"
+                    source: "telegram chat"
+                    platform_id: "123123123"
+                    
+                  - id: 3
+                    title: "Таргет"
+                    category_title: "Таргет"
+                    description: "Описание вакансии 1"
+                    contact_information: "ТГ - @username"
+                    source: "telegram chat"
+                    platform_id: "123123123"
+  "/api/vacancies_create":
+    post: 
+      tags: 
+        - "Create Vacancies"
+      summary: "Get all list vacancies"
+      operationId: CreateVacancies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_title:
+                  type: string
+                  description: "Категория вакансии в системе"
+                  example: "Тех-спец"
+                title:
+                  type: string
+                  description: "Категория вакансии"
+                  example: "Технический специалист"
+                description:
+                  type: string
+                  description: "Описание вакансии"
+                  example: "Какое-то описание вакансии"
+                contact_information:
+                  type: string
+                  description: "Контактная информация"
+                  example: "Tg - @username"
+                platform_id:
+                  type: string
+                  description: "Id пользователя в соц сети"
+                  example: "123123123"
+                source:
+                  type: string
+                  description: "Откуда пришла вакансия"
+                  example: "Telegram chat"
+              required:
+                - category_title
+                - title
+                - description
+                - contact_information
+                - platform_id
+                - source
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Vacancies list
+                type: object
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: "ID вакансии"
+                    title:
+                      type: string
+                      description: "Категория или название вакансии"
+                    category_title:
+                      type: string
+                      description: "Категория вакансии"
+                    description:
+                      type: string
+                      description: "Описание вакансии"
+                    contact_information:
+                      type: string
+                      description: "Контактная информация"
+                    source:
+                      type: string
+                      description: "Откуда пришла вакансия (тг или другие соц сети)"
+                    platform_id:
+                      type: integer
+                      description: "platform id отправителя"
+                example:
+                    id: 1
+                    title: "Технический специалист"
+                    category_title: "Тех-спец"
+                    description: "Описание вакансии 1"
+                    contact_information: "ТГ - @username"
+                    source: "telegram chat"
+                    platform_id: "123123123"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Вакансия не прошла проверку"
+                
+          
+servers:
+  - url: https://ashabal.ru/
