@@ -27,7 +27,7 @@ services:
       - "http"
       - "web:3000"  
     environment:
-      NGROK_AUTHTOKEN: "2j6TAiijPeYxC4602E1IE7ZIo4t_4saB9KzrzpNU9ma8jfi62"
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
     ports:
       - "4040:4040"  
   
