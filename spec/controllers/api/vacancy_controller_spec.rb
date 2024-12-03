@@ -1,9 +1,6 @@
 require 'rails_helper'
-require 'skooma'
 
 RSpec.describe Api::VacancyController, type: :controller do
-  subject(:schema) { skooma_openapi_schema }
-
   let!(:category) { create(:category) }
   let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name) }
   let!(:vacancy) { create(:vacancy, category_title: category.name) }

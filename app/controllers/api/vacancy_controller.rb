@@ -12,7 +12,7 @@ class Api::VacancyController < ApplicationController
       TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
       render json: @vacancy, status: :created
     else
-      render json: {"err": "Вакансия не прошла проверку"}, status: :unprocessable_entity
+      render json: {"err": I18n.t("error.messages.error_validate_vacancy")}, status: :unprocessable_entity
     end
   end
 
