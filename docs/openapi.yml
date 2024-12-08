@@ -5,7 +5,7 @@ info:
   version: "1.0"
   
 paths: 
-  "/api/get_all_vacancies":
+  "/api/vacancy":
     get: 
       tags: 
         - "Get All Vacancies"
@@ -67,12 +67,11 @@ paths:
                     contact_information: "ТГ - @username"
                     source: "telegram chat"
                     platform_id: "123123123"
-  "/api/vacancies_create":
     post: 
       tags: 
-        - "Create Vacancies"
-      summary: "Get all list vacancies"
-      operationId: CreateVacancies
+        - "Create Vacancy"
+      summary: "Create a new vacancy"
+      operationId: CreateVacancy
       requestBody:
         required: true
         content:
@@ -117,40 +116,38 @@ paths:
           content:
             application/json:
               schema:
-                title: Vacancies list
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      description: "ID вакансии"
-                    title:
-                      type: string
-                      description: "Категория или название вакансии"
-                    category_title:
-                      type: string
-                      description: "Категория вакансии"
-                    description:
-                      type: string
-                      description: "Описание вакансии"
-                    contact_information:
-                      type: string
-                      description: "Контактная информация"
-                    source:
-                      type: string
-                      description: "Откуда пришла вакансия (тг или другие соц сети)"
-                    platform_id:
-                      type: integer
-                      description: "platform id отправителя"
-                example:
-                    id: 1
-                    title: "Технический специалист"
-                    category_title: "Тех-спец"
-                    description: "Описание вакансии 1"
-                    contact_information: "ТГ - @username"
-                    source: "telegram chat"
-                    platform_id: "123123123"
+                title: Vacancy
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: "ID вакансии"
+                  title:
+                    type: string
+                    description: "Категория или название вакансии"
+                  category_title:
+                    type: string
+                    description: "Категория вакансии"
+                  description:
+                    type: string
+                    description: "Описание вакансии"
+                  contact_information:
+                    type: string
+                    description: "Контактная информация"
+                  source:
+                    type: string
+                    description: "Откуда пришла вакансия (тг или другие соц сети)"
+                  platform_id:
+                    type: string
+                    description: "platform id отправителя"
+              example:
+                  id: 1
+                  title: "Технический специалист"
+                  category_title: "Тех-спец"
+                  description: "Описание вакансии 1"
+                  contact_information: "ТГ - @username"
+                  source: "telegram chat"
+                  platform_id: "123123123"
         "422":
           description: "Error: Validation failed"
           content:

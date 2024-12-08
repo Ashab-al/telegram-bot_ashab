@@ -13,7 +13,6 @@ Rails.application.routes.draw do
   # resources :categories
 
   namespace :api do
-    match 'vacancies_create', to: 'vacancy#create', via: [:post, :get]
-    match 'get_all_vacancies', to: 'vacancy#index', via: [:get]
+    resource :vacancy, only: [:create, :index]
   end
 end
