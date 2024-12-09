@@ -10,7 +10,7 @@ Bundler.require(*Rails.groups(
 ))
 # load pry for production console
 Bundler.require(:pry) if defined?(Rails::Console)
-
+Bundler.require(*Rails.groups)
 module TelegramBotApp
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -23,5 +23,6 @@ module TelegramBotApp
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.factory_bot.definition_file_paths = ["spec/factories"]
   end
 end
