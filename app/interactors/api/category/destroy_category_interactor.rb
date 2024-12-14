@@ -1,5 +1,4 @@
 class Api::Category::DestroyCategoryInteractor < ActiveInteraction::Base
-  string :name, presence: true
   integer :category_id, presence: true
 
   def execute

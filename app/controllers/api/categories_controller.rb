@@ -31,10 +31,10 @@ class Api::CategoriesController < ApplicationController
   end
 
   def update_params
-    params.require(:category).permit(:new_name, :category_id)
+    params.require(:category).permit(:new_name, :id)
   end
 
   def destroy_params
-    params.require(:category).permit(:name, :category_id)
+    params.require(:category).permit(:category_id)
   end
 end
