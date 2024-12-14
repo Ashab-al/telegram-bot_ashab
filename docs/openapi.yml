@@ -160,7 +160,137 @@ paths:
                     description: "Ошибка валидации"
               example:
                 error: "Вакансия не прошла проверку"
-                
-          
+  "/api/categories":
+    post:
+      tags:
+        - "Create category"
+      summary: "Create category"
+      operationId: CreateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  description: "Название новой категории для вакансий"
+                  example: "Тех-спец"
+              required:
+                - name
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id: 
+                    type: integer
+                    description: "ID созданной категории"
+                  name: 
+                    type: string
+                    description: "Название созданной категории"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Категория не прошла проверку"  
+    patch:
+      tags:
+        - "Update category"
+      summary: "Update category"
+      operationId: UpdateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: "ID категории"
+                  example: 22
+                new_name: 
+                  type: string
+                  description: "Новое название для категории"
+                  example: "Дизайн"
+              required:
+                - name
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id: 
+                    type: integer
+                    description: "ID созданной категории"
+                  name: 
+                    type: string
+                    description: "Новое название категории"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Категория не прошла проверку"     
+    delete:
+      tags:
+        - "Destroy category"
+      summary: "Destroy category"
+      operationId: DestroyCategory
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 22
+          description: "ID категории для удаления"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id: 
+                    type: integer
+                    description: "ID удалённой категории"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Категория не прошла проверку"
 servers:
   - url: https://ashabal.ru/
