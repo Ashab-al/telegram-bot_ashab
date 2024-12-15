@@ -166,7 +166,7 @@ paths:
       tags:
         - "Get all categories"
       summary: "Get all categories"
-      operationId: GelAllCategories
+      operationId: GetAllCategories
       responses: 
         "200":
           description: Successful response
@@ -236,11 +236,64 @@ paths:
                     description: "Ошибка валидации"
               example:
                 error: "Категория не прошла проверку"  
+  
+  "/api/categories/{id}":
+    get:
+      tags:
+        - "Get category"
+      summary: "Get category"
+      operationId: GetCategory
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующей категории"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: "ID категории"
+                  name:
+                    type: string
+                    description: "Название категории"
+                example:
+                  id: 1
+                  name: "Технический специалист"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+                example:
+                  error: "Такой категории не существует"  
     patch:
       tags:
         - "Update category"
       summary: "Update category"
       operationId: UpdateCategory
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующей категории"
+          example: 22
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -248,14 +301,12 @@ paths:
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  description: "ID категории"
-                  example: 22
-                new_name: 
+                name: 
                   type: string
                   description: "Новое название для категории"
-                  example: "Дизайн"
+              example:
+                  id: 22
+                  name: "Технический специалист"
               required:
                 - name
       responses:
@@ -284,7 +335,8 @@ paths:
                     type: string
                     description: "Ошибка валидации"
               example:
-                error: "Категория не прошла проверку"     
+                error: "Такой категории не существует"
+    
     delete:
       tags:
         - "Destroy category"
@@ -292,7 +344,7 @@ paths:
       operationId: DestroyCategory
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
@@ -321,6 +373,7 @@ paths:
                     type: string
                     description: "Ошибка валидации"
               example:
-                error: "Категория не прошла проверку"
+                error: "Такой категории не существует"
+                
 servers:
   - url: https://ashabal.ru/
