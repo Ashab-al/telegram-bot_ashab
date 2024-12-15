@@ -5,6 +5,7 @@ info:
   version: "1.0"
   
 paths: 
+  
   "/api/vacancy":
     get: 
       tags: 
@@ -161,6 +162,35 @@ paths:
               example:
                 error: "Вакансия не прошла проверку"
   "/api/categories":
+    get:
+      tags:
+        - "Get all categories"
+      summary: "Get all categories"
+      operationId: GelAllCategories
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Vacancies list
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: "ID категории"
+                    name:
+                      type: string
+                      description: "Название категории"
+                example:
+                  - id: 1
+                    name: "Технический специалист"
+                  - id: 2
+                    name: "Копирайт"
+                  - id: 3
+                    name: "Дизайн"
     post:
       tags:
         - "Create category"
