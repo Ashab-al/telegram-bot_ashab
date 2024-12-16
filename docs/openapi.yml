@@ -4,12 +4,311 @@ info:
   title: "Апи для Вакантист"
   version: "1.0"
   
-paths: 
+paths:
+  "/api/users/{id}/set_status":
+    post:
+      tags:
+       - "User methods"
+      summary: "Edit user status in bot"
+      operationId: EditStatus
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующего пользователя"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bot_status: 
+                  type: string
+                  description: "Новый статус пользоватя. works или bot_blocked"
+                  example: "works"
+              required:
+                - bot_status
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    description: "success"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                status: "Validation failed"
+  "/api/users/{id}/set_bonus":
+    post:
+      tags:
+       - "User methods"
+      summary: "Edit the number of bonus"
+      operationId: EditBonus
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующего пользователя"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bonus: 
+                  type: integer
+                  description: "Количество бонусных поинтов"
+                  example: 30
+              required:
+                - bonus  
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    description: "success"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                status: "Validation failed"
   
+  "/api/users/{id}":
+    get:
+      tags:
+        - "User methods"
+      summary: "Get user"
+      operationId: GetUser
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующего пользователя"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: "Идентификатор пользователя в базе данных"
+                  name:
+                    type: string
+                    description: "Имя в telegram"
+                  username:
+                    type: string
+                    description: "tg @username в telegram"
+                  email:
+                    type: string
+                    description: "Email"
+                  phone:
+                    type: string
+                    description: "Phone"
+                  platform_id:
+                    type: string
+                    description: "user id в telegram"
+                  created_at:
+                    type: string
+                    description: "Дата создания пользователя"
+                  updated_at:
+                    type: string
+                    description: "Дата последнего изменения"
+                  point:
+                    type: integer
+                    description: "Количество оплаченных поинтов"
+                  bonus:
+                    type: integer
+                    description: "Количество бесплатных поинтов"
+                  bot_status:
+                    type: string
+                    description: "Статус пользователя. works or bot_blocked"
+                example:
+                  id: 1
+                  name: "Имя 1"
+                  username: "examplename1"
+                  email: "example@gmail.com"
+                  phone: "799999999999"
+                  platform_id: "9238841234"
+                  created_at: "16.12.2024"
+                  updated_at: "16.12.2024"
+                  point: 12
+                  bonus: 0
+                  bot_status: "works"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+                example:
+                  error: "Такого пользователя не существует" 
+  "/api/users":
+    get: 
+      tags: 
+        - "User methods"
+      summary: "Get all users"
+      operationId: GetAllUsers
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Users list
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: "Идентификатор пользователя в базе данных"
+                    name:
+                      type: string
+                      description: "Имя в telegram"
+                    username:
+                      type: string
+                      description: "tg @username в telegram"
+                    email:
+                      type: string
+                      description: "Email"
+                    phone:
+                      type: string
+                      description: "Phone"
+                    platform_id:
+                      type: string
+                      description: "user id в telegram"
+                    created_at:
+                      type: string
+                      description: "Дата создания пользователя"
+                    updated_at:
+                      type: string
+                      description: "Дата последнего изменения"
+                    point:
+                      type: integer
+                      description: "Количество оплаченных поинтов"
+                    bonus:
+                      type: integer
+                      description: "Количество бесплатных поинтов"
+                    bot_status:
+                      type: string
+                      description: "Статус пользователя. works or bot_blocked"
+                example:
+                  - id: 1
+                    name: "Имя 1"
+                    username: "examplename1"
+                    email: "example@gmail.com"
+                    phone: "799999999999"
+                    platform_id: "9238841234"
+                    created_at: "16.12.2024"
+                    updated_at: "16.12.2024"
+                    point: 12
+                    bonus: 0
+                    bot_status: "works"
+                    
+                  - id: 2
+                    name: "Имя 2"
+                    username: "examplename2"
+                    email: "example2@gmail.com"
+                    phone: "799999959999"
+                    platform_id: "45138841234"
+                    created_at: "14.12.2024"
+                    updated_at: "15.12.2024"
+                    point: 5
+                    bonus: 10
+                    bot_status: "bot_blocked"
+  "/api/users/mail_all":
+    post:
+      tags:
+       - "User methods"
+      summary: "Sending a mass message to telegram"
+      operationId: MailAll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: 
+                  type: string
+                  description: "Текст для отправки"
+                  example: "Какое-то длинное сообщение"
+              required:
+                - text  
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    description: "success"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                status: "Текст для рассылки не прошла проверку"
   "/api/vacancy":
     get: 
       tags: 
-        - "Get All Vacancies"
+        - "Vacancy methods"
       summary: "Get all list vacancies"
       operationId: GetAllVacancies
       responses: 
@@ -70,7 +369,7 @@ paths:
                     platform_id: "123123123"
     post: 
       tags: 
-        - "Create Vacancy"
+        - "Vacancy methods"
       summary: "Create a new vacancy"
       operationId: CreateVacancy
       requestBody:
@@ -164,7 +463,7 @@ paths:
   "/api/categories":
     get:
       tags:
-        - "Get all categories"
+        - "Category methods"
       summary: "Get all categories"
       operationId: GetAllCategories
       responses: 
@@ -193,7 +492,7 @@ paths:
                     name: "Дизайн"
     post:
       tags:
-        - "Create category"
+        - "Category methods"
       summary: "Create category"
       operationId: CreateCategory
       requestBody:
@@ -236,11 +535,10 @@ paths:
                     description: "Ошибка валидации"
               example:
                 error: "Категория не прошла проверку"  
-  
   "/api/categories/{id}":
     get:
       tags:
-        - "Get category"
+        - "Category methods"
       summary: "Get category"
       operationId: GetCategory
       parameters:
@@ -283,7 +581,7 @@ paths:
                   error: "Такой категории не существует"  
     patch:
       tags:
-        - "Update category"
+        - "Category methods"
       summary: "Update category"
       operationId: UpdateCategory
       parameters:
@@ -336,10 +634,9 @@ paths:
                     description: "Ошибка валидации"
               example:
                 error: "Такой категории не существует"
-    
     delete:
       tags:
-        - "Destroy category"
+        - "Category methods"
       summary: "Destroy category"
       operationId: DestroyCategory
       parameters:
@@ -374,6 +671,6 @@ paths:
                     description: "Ошибка валидации"
               example:
                 error: "Такой категории не существует"
-                
+
 servers:
   - url: https://ashabal.ru/
