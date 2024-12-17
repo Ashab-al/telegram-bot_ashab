@@ -7,12 +7,9 @@ Rails.application.routes.draw do
 
   root 'users#index'
 
-  
-
-  resources :users#, except: [:delete]
-  # resources :categories
-
   namespace :api do
+    resources :users, except: [:delete]
+    resources :categories, only: [:create, :update, :destroy]
     resource :vacancy, only: [:create, :index]
   end
 end
