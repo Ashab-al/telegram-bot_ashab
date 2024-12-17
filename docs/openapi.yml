@@ -3,7 +3,90 @@ openapi: "3.1.2"
 info:
   title: "Апи для Вакантист"
   version: "1.0"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "Идентификатор пользователя в базе данных"
+        name:
+          type: string
+          description: "Имя в telegram"
+        username:
+          type: string
+          description: "tg @username в telegram"
+        email:
+          type: string
+          description: "Email"
+        phone:
+          type: string
+          description: "Phone"
+        platform_id:
+          type: string
+          description: "user id в telegram"
+        created_at:
+          type: string
+          description: "Дата создания пользователя"
+        updated_at:
+          type: string
+          description: "Дата последнего изменения"
+        point:
+          type: integer
+          description: "Количество оплаченных поинтов"
+        bonus:
+          type: integer
+          description: "Количество бесплатных поинтов"
+        bot_status:
+          type: string
+          description: "Статус пользователя. works or bot_blocked"
+
+    UsersList:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+        
+  parameters:
+    UserIdParam:
+      name: id
+      in: path
+      description: "ID существующего пользователя"
+      example: 22
+      required: true
+      schema:
+        type: integer
   
+  responses:
+    UserSuccessResponse:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            title: Category
+            type: object
+            properties:
+              status: 
+                type: string
+                description: "success"
+            example:
+              status: "success"
+
+    UserValidationErrorResponse:
+      description: "Error: Validation failed"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                description: "Ошибка валидации"
+            example:
+              status: "Validation failed"
+    
+
 paths:
   "/api/users/{id}/set_status":
     post:
@@ -12,13 +95,7 @@ paths:
       summary: "Edit user status in bot"
       operationId: EditStatus
       parameters:
-        - name: id
-          in: path
-          description: "ID существующего пользователя"
-          example: 22
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/UserIdParam'
       requestBody:
         required: true
         content:
@@ -34,28 +111,10 @@ paths:
                 - bot_status
       responses:
         "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                title: Category
-                type: object
-                properties:
-                  status: 
-                    type: string
-                    description: "success"
+          $ref: '#/components/responses/UserSuccessResponse'
         "422":
-          description: "Error: Validation failed"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    description: "Ошибка валидации"
-              example:
-                status: "Validation failed"
+          $ref: '#/components/responses/UserValidationErrorResponse'
+          
   "/api/users/{id}/set_bonus":
     post:
       tags:
@@ -85,28 +144,9 @@ paths:
                 - bonus  
       responses:
         "200":
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                title: Category
-                type: object
-                properties:
-                  status: 
-                    type: string
-                    description: "success"
+          $ref: '#/components/responses/UserSuccessResponse'
         "422":
-          description: "Error: Validation failed"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    description: "Ошибка валидации"
-              example:
-                status: "Validation failed"
+          $ref: '#/components/responses/UserValidationErrorResponse'
   
   "/api/users/{id}":
     get:
@@ -128,54 +168,19 @@ paths:
           content:
             application/json:
               schema:
-                title: Category
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    description: "Идентификатор пользователя в базе данных"
-                  name:
-                    type: string
-                    description: "Имя в telegram"
-                  username:
-                    type: string
-                    description: "tg @username в telegram"
-                  email:
-                    type: string
-                    description: "Email"
-                  phone:
-                    type: string
-                    description: "Phone"
-                  platform_id:
-                    type: string
-                    description: "user id в telegram"
-                  created_at:
-                    type: string
-                    description: "Дата создания пользователя"
-                  updated_at:
-                    type: string
-                    description: "Дата последнего изменения"
-                  point:
-                    type: integer
-                    description: "Количество оплаченных поинтов"
-                  bonus:
-                    type: integer
-                    description: "Количество бесплатных поинтов"
-                  bot_status:
-                    type: string
-                    description: "Статус пользователя. works or bot_blocked"
-                example:
-                  id: 1
-                  name: "Имя 1"
-                  username: "examplename1"
-                  email: "example@gmail.com"
-                  phone: "799999999999"
-                  platform_id: "9238841234"
-                  created_at: "16.12.2024"
-                  updated_at: "16.12.2024"
-                  point: 12
-                  bonus: 0
-                  bot_status: "works"
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                name: "Имя 1"
+                username: "examplename1"
+                email: "example@gmail.com"
+                phone: "799999999999"
+                platform_id: "9238841234"
+                created_at: "16.12.2024"
+                updated_at: "16.12.2024"
+                point: 12
+                bonus: 0
+                bot_status: "works"
         "422":
           description: "Error: Validation failed"
           content:
@@ -200,68 +205,31 @@ paths:
           content:
             application/json:
               schema:
-                title: Users list
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      description: "Идентификатор пользователя в базе данных"
-                    name:
-                      type: string
-                      description: "Имя в telegram"
-                    username:
-                      type: string
-                      description: "tg @username в telegram"
-                    email:
-                      type: string
-                      description: "Email"
-                    phone:
-                      type: string
-                      description: "Phone"
-                    platform_id:
-                      type: string
-                      description: "user id в telegram"
-                    created_at:
-                      type: string
-                      description: "Дата создания пользователя"
-                    updated_at:
-                      type: string
-                      description: "Дата последнего изменения"
-                    point:
-                      type: integer
-                      description: "Количество оплаченных поинтов"
-                    bonus:
-                      type: integer
-                      description: "Количество бесплатных поинтов"
-                    bot_status:
-                      type: string
-                      description: "Статус пользователя. works or bot_blocked"
-                example:
-                  - id: 1
-                    name: "Имя 1"
-                    username: "examplename1"
-                    email: "example@gmail.com"
-                    phone: "799999999999"
-                    platform_id: "9238841234"
-                    created_at: "16.12.2024"
-                    updated_at: "16.12.2024"
-                    point: 12
-                    bonus: 0
-                    bot_status: "works"
-                    
-                  - id: 2
-                    name: "Имя 2"
-                    username: "examplename2"
-                    email: "example2@gmail.com"
-                    phone: "799999959999"
-                    platform_id: "45138841234"
-                    created_at: "14.12.2024"
-                    updated_at: "15.12.2024"
-                    point: 5
-                    bonus: 10
-                    bot_status: "bot_blocked"
+                $ref: '#/components/schemas/UsersList'
+              example:
+                - id: 1
+                  name: "Имя 1"
+                  username: "examplename1"
+                  email: "example@gmail.com"
+                  phone: "799999999999"
+                  platform_id: "9238841234"
+                  created_at: "16.12.2024"
+                  updated_at: "16.12.2024"
+                  point: 12
+                  bonus: 0
+                  bot_status: "works"
+                  
+                - id: 2
+                  name: "Имя 2"
+                  username: "examplename2"
+                  email: "example2@gmail.com"
+                  phone: "799999959999"
+                  platform_id: "45138841234"
+                  created_at: "14.12.2024"
+                  updated_at: "15.12.2024"
+                  point: 5
+                  bonus: 10
+                  bot_status: "bot_blocked"
   "/api/users/mail_all":
     post:
       tags:
