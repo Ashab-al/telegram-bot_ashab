@@ -9,7 +9,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     resources :users, except: [:delete]
-    resources :categories, only: [:create, :update, :destroy]
+    resources :categories
     resource :vacancy, only: [:create, :index]
   end
 end

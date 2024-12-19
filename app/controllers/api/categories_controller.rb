@@ -1,5 +1,18 @@
 class Api::CategoriesController < ApplicationController
 
+  def index
+    render json: { success: true, category: Category.all }, status: :ok
+  end
+
+  def show
+    outcome = Api::Category::GetCategoryInteractor.run({id: params[:id]})
+
+    return render json: {success: false, message: errors_converter(outcome.errors) }, 
+                  status: :unprocessable_entity if outcome.errors.present?
+    
+    render json: { success: true, category: outcome.result }, status: :ok
+  end
+
   def create
     outcome = Api::Category::CreateCategoryInteractor.run(create_params)
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
@@ -17,7 +30,7 @@ class Api::CategoriesController < ApplicationController
   end
 
   def destroy
-    outcome = Api::Category::DestroyCategoryInteractor.run(destroy_params)
+    outcome = Api::Category::DestroyCategoryInteractor.run(params[:id])
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
@@ -31,10 +44,7 @@ class Api::CategoriesController < ApplicationController
   end
 
   def update_params
-    params.require(:category).permit(:new_name, :id)
+    params.require(:category).permit(:name, :id)
   end
 
-  def destroy_params
-    params.require(:category).permit(:category_id)
-  end
 end

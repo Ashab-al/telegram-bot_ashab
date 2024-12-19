@@ -2,8 +2,7 @@ class Api::VacancyController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    @vacancys = Vacancy.all
-    render json: @vacancys
+    render json: { success: true, vacancys: Vacancy.all }, status: :ok
   end
 
   def create
