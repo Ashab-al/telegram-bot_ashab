@@ -4,30 +4,30 @@ class Api::UsersController < ApplicationController
   end
 
   def show
-    outcome = Api::User::GetUserInteractor.run({id: params[:id]})
+    outcome = Api::User::GetUserInteractor.run(params.permit(:id))
 
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
-    render json: { success: true, category: outcome.result }, status: :ok
+    render json: { success: true, user: outcome.result }, status: :ok
   end
 
   def set_status
-    outcome = Api::User::SetStatusInteractor.run()
+    outcome = Api::User::SetStatusInteractor.run(params.permit(:bot_status, :id))
 
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
-    render json: { success: true, category: outcome.result }, status: :ok
+    render json: { success: true, user: outcome.result }, status: :ok
   end
 
   def set_bonus
-    outcome = Api::User::SetBonusInteractor.run()
+    outcome = Api::User::SetBonusInteractor.run(params.permit(:bonus, :id))
 
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
-    render json: { success: true, category: outcome.result }, status: :ok
+    render json: { success: true, user: outcome.result }, status: :ok
   end
 
   def mail_all
@@ -36,6 +36,6 @@ class Api::UsersController < ApplicationController
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
-    render json: { success: true, category: outcome.result }, status: :ok
+    render json: { status: outcome.result }, status: :ok
   end
 end

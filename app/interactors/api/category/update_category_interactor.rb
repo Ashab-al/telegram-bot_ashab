@@ -7,5 +7,6 @@ class Api::Category::UpdateCategoryInteractor < ActiveInteraction::Base
     return errors.add(:category, :invalid) unless category
 
     category.update(name: name)
+    category
   end
 end

@@ -7,5 +7,6 @@ class Api::User::SetBonusInteractor < ActiveInteraction::Base
     return errors.add(:user, :invalid) unless user
     
     user.update(bonus: bonus)
+    user
   end
 end

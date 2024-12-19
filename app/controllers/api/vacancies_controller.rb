@@ -1,8 +1,8 @@
-class Api::VacancyController < ApplicationController
+class Api::VacanciesController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    render json: { success: true, vacancys: Vacancy.all }, status: :ok
+    render json: { success: true, vacancies: Vacancy.all }, status: :ok
   end
 
   def create
@@ -21,7 +21,7 @@ class Api::VacancyController < ApplicationController
     blacklist = vacancy.source == "tg_chat" ? Blacklist.find_by(:contact_information => vacancy.platform_id) : Blacklist.find_by(:contact_information => vacancy.contact_information)
     return false if blacklist && blacklist.complaint_counter >= 2
 
-    return true
+    true
   end
 
   def vacancy_params

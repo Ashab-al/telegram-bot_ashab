@@ -7,5 +7,6 @@ class Api::User::SetStatusInteractor < ActiveInteraction::Base
     return errors.add(:user, :invalid) unless user
     
     user.update(bot_status: bot_status)
+    user
   end
 end

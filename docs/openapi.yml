@@ -273,7 +273,7 @@ paths:
                     description: "Ошибка валидации"
               example:
                 status: "Текст для рассылки не прошла проверку"
-  "/api/vacancy":
+  "/api/vacancies":
     get: 
       tags: 
         - "Vacancy methods"

@@ -3,7 +3,6 @@ class Api::User::MailAllInteractor < ActiveInteraction::Base
 
   def execute
     bot = Telegram.bot
-
     User.all.each do | user |
       begin
         next if user.bot_status == "bot_blocked"
@@ -29,5 +28,8 @@ class Api::User::MailAllInteractor < ActiveInteraction::Base
         Rails.logger.error(text_err)
       end
     end
+
+    true
+    
   end
 end

@@ -1,8 +1,9 @@
 require 'rails_helper'
 
-RSpec.describe Api::VacancyController, type: :controller do
+RSpec.describe Api::VacanciesController, type: :controller do
   let!(:category) { create(:category) }
-  let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name) }
+  let(:vacancies_size) { rand(1..10) }
+  let!(:vacancies) { create_list(:vacancy, vacancies_size, category_title: category.name) }
   let!(:vacancy) { create(:vacancy, category_title: category.name) }
 
   describe "GET #index" do
