@@ -22,7 +22,7 @@ class Api::CategoriesController < ApplicationController
   end
 
   def update
-    outcome = Api::Category::UpdateCategoryInteractor.run({name: params[:name],id: params[:id]})
+    outcome = Api::Category::UpdateCategoryInteractor.run({name: params[:name], id: params[:id]})
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
