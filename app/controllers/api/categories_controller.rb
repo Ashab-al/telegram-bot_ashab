@@ -1,7 +1,7 @@
 class Api::CategoriesController < ApplicationController
 
   def index
-    render json: { success: true, categories: Category.all }, status: :ok
+    render json: Category.all, status: :ok
   end
 
   def show
@@ -14,7 +14,7 @@ class Api::CategoriesController < ApplicationController
   end
 
   def create
-    outcome = Api::Category::CreateCategoryInteractor.run(params.permit(:name))
+    outcome = Api::Category::CreateCategoryInteractor.run(name: params[:name])
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
@@ -22,7 +22,7 @@ class Api::CategoriesController < ApplicationController
   end
 
   def update
-    outcome = Api::Category::UpdateCategoryInteractor.run(params.permit(:name, :id))
+    outcome = Api::Category::UpdateCategoryInteractor.run({name: params[:name],id: params[:id]})
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     

@@ -2,29 +2,43 @@ class Api::VacanciesController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    render json: { success: true, vacancies: Vacancy.all }, status: :ok
+    render json: Vacancy.all, status: :ok
   end
 
   def create
-    @vacancy = Vacancy.new(vacancy_params)
-    if blacklist_check(@vacancy) && @vacancy.save
-      TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
-      render json: @vacancy, status: :created
-    else
-      render json: {"err": I18n.t("error.messages.error_validate_vacancy")}, status: :unprocessable_entity
-    end
+    blacklist = Api::Vacancy::BlackListCheckInteractor.run(blacklist_params)
+    return render json: {success: false, message: errors_converter(blacklist.errors) }, 
+                          status: :unprocessable_entity if blacklist.errors.present?
+    
+    vacancy = Api::Vacancy::CreateVacancyInteractor.run(vacancy_params)
+    
+    return render json: {success: false, message: errors_converter(vacancy.errors) }, 
+                          status: :unprocessable_entity if vacancy.errors.present?
+
+    TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
+    
+    
+    render json: vacancy.result, status: :ok
   end
 
   private
 
-  def blacklist_check(vacancy)
-    blacklist = vacancy.source == "tg_chat" ? Blacklist.find_by(:contact_information => vacancy.platform_id) : Blacklist.find_by(:contact_information => vacancy.contact_information)
-    return false if blacklist && blacklist.complaint_counter >= 2
-
-    true
+  def blacklist_params
+    {
+      platform_id: params[:platform_id], 
+      contact_information: params[:contact_information],
+      source: params[:source]
+    }
   end
 
   def vacancy_params
-    params.permit(:category_title, :title, :description, :contact_information, :platform_id, :source)
+    {
+      category_title: params[:category_title],
+      title: params[:title],
+      description: params[:description],
+      contact_information: params[:contact_information],
+      platform_id: params[:platform_id],
+      source: params[:source]
+    }
   end
 end

@@ -36,6 +36,6 @@ class Api::UsersController < ApplicationController
     return render json: {success: false, message: errors_converter(outcome.errors) }, 
                   status: :unprocessable_entity if outcome.errors.present?
     
-    render json: { status: outcome.result }, status: :ok
+    render json: { status: "success" }, status: :ok
   end
 end

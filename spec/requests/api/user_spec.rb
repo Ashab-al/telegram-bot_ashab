@@ -6,6 +6,8 @@ RSpec.describe "User", type: :request do
   describe "Request GET #show" do 
     before { get "/api/users/#{user.id}"}
 
+    it { is_expected.to conform_schema(200) }
+
     it "return correct user" do 
       expect(JSON.parse(response.body)["user"]).to eq(JSON.parse(user.to_json))
     end 
@@ -23,7 +25,9 @@ RSpec.describe "User", type: :request do
 
   describe "Request POST #set_status" do 
     let(:status) { "bot_blocked" }
-    before { post "/api/users/#{user.id}/set_status", params: {bot_status: status} }
+    before { post "/api/users/#{user.id}/set_status", params: {bot_status: status}.to_json, headers: { 'Content-Type' => 'application/json' } }
+
+    it { is_expected.to conform_schema(200) }
 
     it "return success edited status" do 
       expect(User.find_by(id: user.id).bot_status).to eq(status)
@@ -32,7 +36,9 @@ RSpec.describe "User", type: :request do
 
   describe "Request POST #set_bonus" do 
     let(:bonus) { 25 }
-    before { post "/api/users/#{user.id}/set_bonus", params: {bonus: bonus} }
+    before { post "/api/users/#{user.id}/set_bonus", params: {bonus: bonus}.to_json, headers: { 'Content-Type' => 'application/json' } }
+
+    it { is_expected.to conform_schema(200) }
 
     it "return success edited bonus" do 
       expect(User.find_by(id: user.id).bonus).to eq(bonus)
@@ -41,10 +47,12 @@ RSpec.describe "User", type: :request do
 
   describe "Request POST #mail_all" do 
     let(:text) { "Какой-то длинный текст Какой-то длинный текст Какой-то длинный текст" }
-    before { post "/api/users/mail_all", params: {text: text} }
+    before { post "/api/users/mail_all", params: {text: text}.to_json, headers: { 'Content-Type' => 'application/json' } }
+    
+    it { is_expected.to conform_schema(200) }
 
     it "return success mail all" do 
-      expect(JSON.parse(response.body)["status"]).to eq(true)
+      expect(JSON.parse(response.body)["status"]).to eq("success")
     end 
   end
 end

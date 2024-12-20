@@ -427,7 +427,7 @@ paths:
                     type: string
                     description: "Ошибка валидации"
               example:
-                error: "Вакансия не прошла проверку"
+                error: "The vacancy has not been verified"
   "/api/categories":
     get:
       tags:

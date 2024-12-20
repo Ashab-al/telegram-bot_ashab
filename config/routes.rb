@@ -8,10 +8,13 @@ Rails.application.routes.draw do
   root 'users#index'
 
   namespace :api do
-    post 'users/:id/set_status', to: 'users#set_status'
-    post 'users/:id/set_bonus', to: 'users#set_bonus'
     post 'users/mail_all', to: 'users#mail_all'
-    resources :users, only: [:index, :show]
+    resources :users, only: [:index, :show] do 
+      member do 
+        post 'set_status'
+        post 'set_bonus'
+      end
+    end
 
     resources :categories
 

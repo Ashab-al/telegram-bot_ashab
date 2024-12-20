@@ -21,7 +21,7 @@ RSpec.describe Api::VacanciesController, type: :controller do
     it "returns status created" do 
       post :create, params: vacancy.as_json
       
-      expect(response).to have_http_status(:created)
+      expect(response).to have_http_status(:ok)
     end
 
     it "returns status unprocessable_entity" do 
