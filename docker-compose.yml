@@ -1,48 +1,48 @@
 services:
-  # db:
-  #   image: postgres
-  #   volumes:
-  #     - ./tmp/db:/var/postgresql/data
-  #   environment:
-  #     POSTGRES_PASSWORD: password
-  # tgbot:
-  #   build: .
-  #   command: bash -c "bin/rake telegram:bot:poller"
-  #   volumes:
-  #     - .:/chatbottg
-  # web:
-  #   build: .
-  #   command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=development bundle exec rails s -p 3000 -b '0.0.0.0'"
-  #   volumes:
-  #     - .:/chatbottg
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - db
-  #     - tgbot
-
-  # ngrok:
-  #   image: ngrok/ngrok:latest
-  #   command:
-  #     - "http"
-  #     - "web:3000"  
-  #   environment:
-  #     NGROK_AUTHTOKEN: "2j6TAiijPeYxC4602E1IE7ZIo4t_4saB9KzrzpNU9ma8jfi62"
-  #   ports:
-  #     - "4040:4040"  
-  
   db:
     image: postgres
     volumes:
       - ./tmp/db:/var/postgresql/data
     environment:
       POSTGRES_PASSWORD: password
+  tgbot:
+    build: .
+    command: bash -c "bin/rake telegram:bot:poller"
+    volumes:
+      - .:/chatbottg
   web:
     build: .
-    command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=production bundle exec rails s -p 3000 -b '0.0.0.0'"
+    command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=development bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/chatbottg
     ports:
       - "3000:3000"
     depends_on:
       - db
+      - tgbot
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command:
+      - "http"
+      - "web:3000"  
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"  
+  
+  # db:
+  #   image: postgres
+  #   volumes:
+  #     - ./tmp/db:/var/postgresql/data
+  #   environment:
+  #     POSTGRES_PASSWORD: password
+  # web:
+  #   build: .
+  #   command: bash -c "rm -f tmp/pids/server.pid && RAILS_ENV=production bundle exec rails s -p 3000 -b '0.0.0.0'"
+  #   volumes:
+  #     - .:/chatbottg
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - db

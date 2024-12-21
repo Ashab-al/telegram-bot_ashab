@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.0.0"
+ruby "3.1.6"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.2", ">= 7.0.2.3"
@@ -34,6 +34,7 @@ gem 'rest-client'
 gem 'yookassa'
 gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
+gem 'nokogiri'
 gem 'tomo'
 gem 'sidekiq'
 gem "graphql"
@@ -41,6 +42,8 @@ gem "graphiql-rails", group: :development
 gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
 gem 'i18n'
+gem 'skooma'
+
 # end
 
 group :pry do
@@ -54,6 +57,7 @@ end
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem 'factory_bot_rails'
 end
 
 group :development do
@@ -62,6 +66,7 @@ group :development do
 
   gem "spring"
   gem "spring-commands-rspec"
+  
 end
 
 group :test do
@@ -69,7 +74,6 @@ group :test do
   # gem "capybara"
   # gem "selenium-webdriver"
   # gem "webdrivers"
-  gem 'factory_bot_rails'
   gem "rspec-rails"
   gem "rspec-its"
 end

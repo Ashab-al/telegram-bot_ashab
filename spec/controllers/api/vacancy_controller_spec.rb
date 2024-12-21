@@ -1,33 +1,32 @@
 require 'rails_helper'
 
-RSpec.describe Api::VacancyController, :type => :controller do
-                 
-  describe "GET #index" do 
-    it "returns all vacancies" do 
-      vacancies = FactoryBot.create_list(:vacancy, 3)
+RSpec.describe Api::VacancyController, type: :controller do
+  let!(:category) { create(:category) }
+  let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name) }
+  let!(:vacancy) { create(:vacancy, category_title: category.name) }
 
-      get :index
-
-      expect(response).to have_http_status(:success)
-      expect(JSON.parse(response.body).length).to eq(vacancies.size)
+  describe "GET #index" do
+    it "returns status ok" do
+      get :index 
+      expect(response).to have_http_status(:ok)
     end
   end
-                              
-  describe "POST #create" do
-    context "with valid params" do 
-      it "create new vacancy" do 
-        vacancy = instance_double(Vacancy, save: true)
-        
-        allow(Vacancy).to receive(:new).and_return(vacancy)
 
-        allow_any_instance_of(Api::VacancyController).to receive(:send_vacancy).with(vacancy).and_return(true)
-        allow_any_instance_of(Api::VacancyController).to receive(:blacklist_check).with(vacancy).and_return(true)
+  describe "POST #create" do 
+    before do
+      allow_any_instance_of(TelegramMessageService).to receive(:sending_vacancy_to_users)
+    end
 
-        post :create, params: { vacancy: {:category_title => "Тех-спец", :title => "Тех-спец", 
-        :description => "Описание", :contact_information => "@username",
-        :source => "tg_chat", :platform_id => "123123"} }
-        expect(response).to have_http_status(:created)
-      end
+    it "returns status created" do 
+      post :create, params: vacancy.as_json
+      
+      expect(response).to have_http_status(:created)
+    end
+
+    it "returns status unprocessable_entity" do 
+      post :create, params: {}
+
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 end

@@ -9,10 +9,10 @@ class Api::VacancyController < ApplicationController
   def create
     @vacancy = Vacancy.new(vacancy_params)
     if blacklist_check(@vacancy) && @vacancy.save
-      TelegramMessageService.new.sending_vacancy_to_users(vacancy)
+      TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
       render json: @vacancy, status: :created
     else
-      render json: {"err": "Вакансия не прошла проверку"}, status: :unprocessable_entity
+      render json: {"err": I18n.t("error.messages.error_validate_vacancy")}, status: :unprocessable_entity
     end
   end
 
