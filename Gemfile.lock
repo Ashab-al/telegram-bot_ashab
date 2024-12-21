@@ -348,6 +348,7 @@ DEPENDENCIES
   graphql
   i18n
   importmap-rails
+  nokogiri
   pg (~> 1.5.4)
   pry
   pry-byebug
