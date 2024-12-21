@@ -12,6 +12,7 @@ COPY Gemfile.lock /chatbottg/Gemfile.lock
 
 RUN bundle config set force_ruby_platform true && \
     bundle config build.nokogiri --use-system-libraries && \
+    bundle update --bundler && \
     bundle install
 
 COPY entrypoint.sh /usr/bin
