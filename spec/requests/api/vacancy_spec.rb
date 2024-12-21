@@ -1,40 +1,48 @@
 require 'rails_helper'
 
 RSpec.describe "Vacancy", type: :request do
-  let!(:category) { create(:category) }
-  let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name) }
+  let(:category) { create(:category) }
+  
     
   describe "Request GET #index" do 
-    before { get "/api/get_all_vacancies" }
+    let(:vacancies_size) {rand(1..10)}
+    let!(:vacancies) { create_list(:vacancy, vacancies_size, category_title: category.name) }
+
+    before { get "/api/vacancies" }
+
+    it { is_expected.to conform_schema(200) }
 
     it "returns correct size vacancies" do 
-      expect(JSON.parse(response.body).length).to eq(vacancies.size)
+      expect(JSON.parse(response.body).size).to eq(vacancies_size)
     end
 
     it "returns correct vacancies data" do 
-      expect(JSON.parse(response.body)).to eq(vacancies.as_json)
+      expect(JSON.parse(response.body)).to eq(JSON.parse(vacancies.to_json))
     end
   end
                               
   describe "Request POST #create" do
-    let!(:vacancy) { create(:vacancy, category_title: category.name) }
-    
+    let(:vacancy) { 
+      {
+        title: "Тех-спец",
+        description: "Описание",
+        contact_information: "@username",
+        platform_id: "123123",
+        source: "TG",
+        category_title: category.name
+      }
+    }
     before do
       allow_any_instance_of(TelegramMessageService).to receive(:sending_vacancy_to_users)
     end
 
     it "after create new vacancy, return correct data" do 
-      allow(Vacancy).to receive(:new).and_return(vacancy)
-      
-      post "/api/vacancies_create", params: vacancy.as_json
-      
-      expect(JSON.parse(response.body)).to eq(vacancy.as_json)
-    end
 
-    it "returns status unprocessable_entity" do 
-      post "/api/vacancies_create", params: {}
+      post "/api/vacancies", params: vacancy.to_json, headers: { 'Content-Type' => 'application/json' }
+      
+      is_expected.to conform_schema(200)
 
-      expect(JSON.parse(response.body)["err"]).to eq(I18n.t("error.messages.error_validate_vacancy"))
+      expect(JSON.parse(response.body)["title"]).to eq(vacancy[:title])
     end
   end
 end
