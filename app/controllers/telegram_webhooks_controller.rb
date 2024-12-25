@@ -4,6 +4,8 @@ require_relative '../services/pagination_service'
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   
+  before_action :set_locale
+
   before_action :load_user, except: [:update_bonus_users!, :total_vacancies_sent,
                                      :choice_help, :marketing, :choice_category, 
                                      :message, :user_params, :spam_vacancy, :session_key]
@@ -33,7 +35,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
-      choice_help
+      respond_with :message, text: t('instructions')
       menu 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
@@ -56,19 +58,20 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when 'Категории'
         choice_category
       when 'Реклама'
-        marketing
+        respond_with :message, text: t('advertisement', text: Tg::AdvertisementInteractor.run().result)
         menu
       when 'Помощь'
-        choice_help
+        respond_with :message, text: t('instructions')
         menu
       when 'Поинты'
         points
       else
-        respond_with :message, text: total_vacancies_sent,
+        respond_with :message, text: Tg::TotalVacanciesInteractor.run().result,
                                 parse_mode: 'HTML'
 
         respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
-          keyboard: [['Поинты 💎', 'Реклама ✨', 'Помощь ⚙️'], ['Категории 🧲']],
+          keyboard: [["#{t('buttons.menu.points')}", "#{t('buttons.menu.advertisement')}", "#{t('buttons.menu.help')}"], 
+                     ["#{t('buttons.menu.categories')}"]],
           resize_keyboard: true,
           one_time_keyboard: true,
           selective: true
@@ -79,71 +82,26 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def total_vacancies_sent
-    vacancies_by_category = Vacancy.group(:category_title).count
-    text = "<b>Всего вакансий отправлено:</b> #{Vacancy.count} ⚡️\n"
-    
-    Category.all.each do |category|  
-      category_vacancies_count = vacancies_by_category[category.name] || 0
-      text += if category_vacancies_count.positive?
-                "<b>#{category.name}:</b> #{category_vacancies_count}\n"
-              else
-                "#{category.name}: #{category_vacancies_count}\n"
-              end
-    end
-    
-    text 
-  end
-
   def points
     begin
       points_message = respond_with :message,
-                  text: "#{from['first_name']}\n\n" \
-                        "🔍 Ваш баланс: #{@user.point} \n" \
-                        "🎁 Бонусные: #{@user.bonus} \n\n" \
-                        'Используйте поинты, чтобы открывать вакансии и расширять свои возможности!',
+                  text: "#{t('user.name', name: from['first_name'])}\n\n" \
+                        "#{t('user.balance.point', point: @user.point)}\n" \
+                        "#{t('user.balance.bonus', bonus: @user.bonus)}\n\n" \
+                        "#{t('user.balance.recommendation')}",
                         reply_markup: {
                           inline_keyboard: [
-                            [{ text: '💎 10 поинтов - 30 ⭐️', callback_data: '10 поинтов' }],
-                            [{ text: '💎 30 поинтов - 85 ⭐️', callback_data: '30 поинтов' }],
-                            [{ text: '💎 50 поинтов - 135 ⭐️', callback_data: '50 поинтов' }],
-                            [{ text: '💎 100 поинтов - 255 ⭐️', callback_data: '100 поинтов' }],
-                            [{ text: '💎 150 поинтов - 360 ⭐️', callback_data: '150 поинтов' }],
-                            [{ text: '💎 200 поинтов - 450 ⭐️', callback_data: '200 поинтов' }]
+                            [{ text: "#{t('buttons.by_points.point_10')}", callback_data: "#{t('buttons.by_points.point_10_callback')}" }],
+                            [{ text: "#{t('buttons.by_points.point_30')}", callback_data: "#{t('buttons.by_points.point_30_callback')}" }],
+                            [{ text: "#{t('buttons.by_points.point_50')}", callback_data: "#{t('buttons.by_points.point_50_callback')}" }],
+                            [{ text: "#{t('buttons.by_points.point_100')}", callback_data: "#{t('buttons.by_points.point_100_callback')}" }],
+                            [{ text: "#{t('buttons.by_points.point_150')}", callback_data: "#{t('buttons.by_points.point_150_callback')}" }],
+                            [{ text: "#{t('buttons.by_points.point_200')}", callback_data: "#{t('buttons.by_points.point_200_callback')}" }]
                           ]
                         } 
       session[:by_points_message_id] = points_message['result']['message_id']
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "points err: #{e}")
-    end
-  end
-
-  def choice_help
-    begin
-      respond_with :message, text: "👉⚡️ Инструкция:\n\n" \
-      "1️⃣ Нажми \"Категории 🧲\" для старта ✅\n\n" \
-      "2️⃣ Выбери свою область 💼\n" \
-      "🔹 Получай интересные предложения мгновенно\n\n" \
-      "3️⃣ В разделе \"Поинты 💎\" проверь баланс\n" \
-      "🔹 Поинты - валюта для доступа к контактам ⚜️\n" \
-      "🔹 Ежедневно 2 бесплатных поинта\n\n" \
-      'Готовы к новым возможностям? "Категории 🧲" - и вперёд!' 
-
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_help err: #{e}")
-    end
-  end
-
-  def marketing
-    begin
-      text = ""
-      Category.all.each_with_index do |category, index|
-        text += "#{index+1}. #{category.name}: #{category.user.size}\n"
-      end
-      respond_with :message, text: "(Еще в разработке)\n\n" \
-                                  "Количество пользователей в боте:\n" + text     
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "marketing err: #{e}")
     end
   end
 
@@ -548,5 +506,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         "options" => errors.first.options
       } 
     end
+  end
+
+
+  private
+  
+  def set_locale
+    I18n.locale = :ru
   end
 end

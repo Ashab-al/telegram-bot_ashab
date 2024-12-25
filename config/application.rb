@@ -24,5 +24,7 @@ module TelegramBotApp
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
     config.factory_bot.definition_file_paths = ["spec/factories"]
+    config.i18n.available_locales = %i[en ru]
+    config.i18n.default_locale = :en
   end
 end
