@@ -90,14 +90,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                         "#{t('user.balance.bonus', bonus: @user.bonus)}\n\n" \
                         "#{t('user.balance.recommendation')}",
                         reply_markup: {
-                          inline_keyboard: [
-                            [{ text: "#{t('buttons.by_points.point_10')}", callback_data: "#{t('buttons.by_points.point_10_callback')}" }],
-                            [{ text: "#{t('buttons.by_points.point_30')}", callback_data: "#{t('buttons.by_points.point_30_callback')}" }],
-                            [{ text: "#{t('buttons.by_points.point_50')}", callback_data: "#{t('buttons.by_points.point_50_callback')}" }],
-                            [{ text: "#{t('buttons.by_points.point_100')}", callback_data: "#{t('buttons.by_points.point_100_callback')}" }],
-                            [{ text: "#{t('buttons.by_points.point_150')}", callback_data: "#{t('buttons.by_points.point_150_callback')}" }],
-                            [{ text: "#{t('buttons.by_points.point_200')}", callback_data: "#{t('buttons.by_points.point_200_callback')}" }]
-                          ]
+                          inline_keyboard: [10, 30, 50, 100, 150, 200].map { | quantity | [{ text: t("buttons.by_points.point_#{quantity}"), 
+                                                                                             callback_data: t("buttons.by_points.point_#{quantity}_callback") }] }
                         } 
       session[:by_points_message_id] = points_message['result']['message_id']
     rescue => e 
@@ -107,12 +101,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_category
     begin
-      category_send_message = respond_with :message,
-                                          text: "Выберите категории \n" \
-                                                "(Просто нажмите на интересующие кнопки)\n\n" \
-                                                "🔋 - означает что категория выбрана\n" \
-                                                "\u{1FAAB} - означает что категория НЕ выбрана",
-                                          reply_markup: formation_of_category_buttons
+      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: formation_of_category_buttons
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
@@ -122,6 +111,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
 
   def callback_query(data_callback)
+    return false unless chat["type"] == "private"
+
     begin
       
       case data_callback
@@ -134,55 +125,18 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
 
       when /^\d{1,3} поинтов$/
-          tarifs = {
-            "10 поинтов": {
-              :cost => 30,
-              :description => "10 поинтов",
-              :points => 10
-            },
-            "30 поинтов": {
-              :cost => 85,
-              :description => "30 поинтов",
-              :points => 30
-            },
-            "50 поинтов": {
-              :cost => 135,
-              :description => "50 поинтов",
-              :points => 50
-            },
-            "100 поинтов": {
-              :cost => 255,
-              :description => "100 поинтов",
-              :points => 100
-            },
-            "150 поинтов": {
-              :cost => 360,
-              :description => "150 поинтов",
-              :points => 150
-            },
-            "200 поинтов": {
-              :cost => 450,
-              :description => "200 поинтов",
-              :points => 200
-            }
-          }
-          begin
-            return false unless chat["type"] == "private"
-            
-            outcome = Payment::CreateInteractor.run(
-              {
-              :product_name => tarifs[:"#{data_callback}"][:description],
-              :description => tarifs[:"#{data_callback}"][:description],
-              :price => tarifs[:"#{data_callback}"][:cost],
-              :chat_id => "#{@user.platform_id}",
-              :bot => bot,
-              :title => "infobizaa_bot 💎 #{tarifs[:"#{data_callback}"][:description]}",
-              :points => tarifs[:"#{data_callback}"][:points]
-              })
-          rescue => e 
-            bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Payment::CreateInteractor err: #{e}")
-          end
-        return true
+        begin
+          Payment::CreateInteractor.run({
+            :chat_id => "#{@user.platform_id}",
+            :bot => bot,
+            :tarif => data_callback,
+            :title => t('bot.title')
+          })
+          return true
+        rescue => e 
+          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Payment::CreateInteractor err: #{e}")
+        end
+        
 
       when /^mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
