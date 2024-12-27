@@ -1,7 +1,29 @@
 ru:
+  vacancy:
+    source: "tg_chat"
+    vacancy_plus_contacts: |
+      <b>Категория:</b> %{category_title}
+      <b>Всего поинтов на счету:</b> %{points}
+      
+      %{description}
+
+      <b>Контакты:</b>
+      %{contact_information}
+
+      ⛄️ Вакансия отправлена с помощью @infobizaa_bot
+  smile:
+    full_battery: "🔋"
+    low_battery: "🪫"
+  notice_message:
+    add_to_blacklist: "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕"
   bot:
     title: "infobizaa_bot 💎"
   buttons:
+    points: "Поинты"
+    for_vacancy_message:
+      by_points: "Купить поинты %{smile}"
+      spam: "🤖 Спам 🤖"
+      callback_data: "spam_mid_%{message_id}_bdid_%{vacancy_id}"
     menu:
       points: "Поинты 💎"
       advertisement: "Реклама ✨"
@@ -26,6 +48,12 @@ ru:
       point: "🔍 Ваш баланс: %{point}"
       bonus: "🎁 Бонусные: %{bonus}"
       recommendation: "Используйте поинты, чтобы открывать вакансии и расширять свои возможности!"
+      out_of_points: |
+        У вас закончились поинты 😢
+
+        Покупка поинтов - выгодное вложение!
+        🪫 Бонусный счет: %{bonus}
+        🪫 Платный счет: %{point}
 
   advertisement: |
     (Еще в разработке)
@@ -39,9 +67,7 @@ ru:
     1️⃣ Нажми "Категории 🧲" для старта
 
     2️⃣ Выбери свою область 💼
-    🔹 Получай интересные предложения мгновенно
-
-    3️⃣ В разделе "Поинты 💎" проверь баланс
+    🔹 Получай интересные преvacancy_plus_contactsпроверь баланс
     🔹 Поинты - валюта для доступа к контактам ⚜️
     🔹 2 бесплатных поинта
 
@@ -53,3 +79,5 @@ ru:
 
     🔋 - означает что категория выбрана
     🪫 - означает что категория НЕ выбрана
+  
+  

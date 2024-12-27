@@ -139,10 +139,21 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         
 
       when /^mid_\d+_bdid_\d+/
-        data_scan = data_callback.scan(/\d+/)
-        open_a_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
-        return true
+        begin
+          data_scan = data_callback.scan(/\d+/)
 
+          outcome = Tg::OpenVacancyInteractor.run(
+            bot: bot, 
+            user: @user, 
+            message_id: data_scan[0], 
+            vacancy_id: data_scan[1],
+            callback_id: Telegram.bot.get_updates["result"].first["callback_query"]["id"]
+          )
+
+          return true
+        rescue => e 
+          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Tg::OpenVacancyInteractor err: #{e}")
+        end
       when /^spam_mid_\d+_bdid_\d+/
         data_scan = data_callback.scan(/\d+/)
         spam_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
@@ -373,42 +384,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       @user.subscriptions.find_by(category: category)&.destroy
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "unsubscribe_user_from_category err: #{e}")
-    end
-  end
-
-  def open_a_vacancy(data)
-    begin
-      vacancy = Vacancy.find(data[:vacancy_id])
-      contact_information = vacancy.source == "tg_chat" ? vacancy.platform_id : vacancy.contact_information
-  
-      blacklist = Blacklist.find_by(:contact_information => contact_information)
-      if blacklist and blacklist.complaint_counter >= 3
-        answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
-        return true
-      end
-      button = [
-        [{ text: "Купить поинты #{@user.point <= 5 ? "🪫" : "🔋"}", callback_data: "Поинты" }],
-        [{ text: "🤖 Спам 🤖", callback_data: "spam_mid_#{data[:message_id]}_bdid_#{data[:vacancy_id]}" }]
-      ]
-      text_formation = "<b>Категория:</b> #{vacancy.category_title}\n" \
-                      "<b>Всего поинтов на счету:</b> #{@user.point + @user.bonus - 1}\n\n" \
-                      "#{vacancy.description}\n\n" \
-                      "<b>Контакты:</b>\n" \
-                      "#{vacancy.contact_information}"
-                      
-      if @user.bonus > 0
-        update_point_send_messag(text_formation, {:bonus => @user.bonus - 1}, data[:message_id], button)
-      elsif @user.point > 0
-        update_point_send_messag(text_formation, {:point => @user.point - 1}, data[:message_id], button)
-      else
-        answer_callback_query "У вас закончились поинты \u{1FAAB}\n\n" \
-                              "Покупка поинтов - выгодное вложение!" \
-                              "💎 Бонусный счет: #{@user.bonus}\n" \
-                              "💎 Платный счет: #{@user.point}\n", 
-                              show_alert: true
-      end
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "open_a_vacancy err: #{e}")
     end
   end
 
