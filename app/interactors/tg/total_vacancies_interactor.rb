@@ -2,7 +2,8 @@ class Tg::TotalVacanciesInteractor  < ActiveInteraction::Base
 
   def execute
     vacancies_by_category = Vacancy.group(:category_title).count
-    text = "<b>Всего вакансий отправлено:</b> #{Vacancy.count} ⚡️\n"
+    text = I18n.t('vacancy.total_vacancies.all_vacancies_size', size: Vacancy.count)
+    
     
     Category.all.each do |category|  
       category_vacancies_count = vacancies_by_category[category.name] || 0
