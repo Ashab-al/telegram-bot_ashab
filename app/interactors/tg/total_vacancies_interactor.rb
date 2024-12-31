@@ -1,19 +1,24 @@
 class Tg::TotalVacanciesInteractor  < ActiveInteraction::Base
 
   def execute
-    vacancies_by_category = Vacancy.group(:category_title).count
+    categories = Category.includes(:vacancies).all
+    
+    formation_text(categories)
+  end
+
+  def formation_text(categories)
     text = I18n.t('vacancy.total_vacancies.all_vacancies_size', size: Vacancy.count)
-    
-    
-    Category.all.each do |category|  
-      category_vacancies_count = vacancies_by_category[category.name] || 0
-      text += if category_vacancies_count.positive?
-                "<b>#{category.name}:</b> #{category_vacancies_count}\n"
+
+    categories.each do |category|
+      text += if category.vacancies.size.positive?
+                I18n.t('vacancy.total_vacancies.category_and_vacancy_size_bold', 
+                        name: category.name, size: category.vacancies.size)
               else
-                "#{category.name}: #{category_vacancies_count}\n"
+                I18n.t('vacancy.total_vacancies.category_and_vacancy_size', 
+                  name: category.name, size: category.vacancies.size)
               end
     end
-    
-    text 
+
+    text
   end
 end

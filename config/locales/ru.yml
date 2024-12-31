@@ -2,6 +2,8 @@ ru:
   vacancy:
     total_vacancies:
       all_vacancies_size: "<b>Всего вакансий отправлено:</b> %{size} ⚡️\n"
+      category_and_vacancy_size_bold: "<b>%{name}:</b> %{size}\n"
+      category_and_vacancy_size: "%{name}: %{size}\n"
     source: "tg_chat"
     vacancy_plus_contacts: |
       <b>Категория:</b> %{category_title}

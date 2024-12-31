@@ -34,7 +34,7 @@ gem 'rest-client'
 gem 'yookassa'
 gem 'webpacker'
 gem "tailwindcss-rails", "~> 2.1"
-gem 'nokogiri'
+gem 'nokogiri', "1.12.5"
 gem 'tomo'
 gem 'sidekiq'
 gem "graphql"
