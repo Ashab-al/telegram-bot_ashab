@@ -1,12 +1,10 @@
 class Tg::TotalVacanciesInteractor  < ActiveInteraction::Base
 
-  def execute
-    categories = Category.includes(:vacancies).all
-    
-    formation_text(categories)
+  def execute    
+    formation_text
   end
 
-  def formation_text(categories)
+  def formation_text
     vacancy_size = 0
     category_size_text = Category.pluck(Arel.sql("name") , Arel.sql("(SELECT count(*) FROM vacancies WHERE vacancies.category_id = categories.id)"))
       .each_with_index
