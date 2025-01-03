@@ -6,7 +6,7 @@ class Tg::TotalVacanciesInteractor  < ActiveInteraction::Base
 
   def formation_text
     vacancy_size = 0
-    category_size_text = Category.pluck(Arel.sql("name") , Arel.sql("(SELECT count(*) FROM vacancies WHERE vacancies.category_id = categories.id)"))
+    category_size_text = Category.pluck(Arel.sql("name"), Arel.sql("(SELECT count(*) FROM vacancies WHERE vacancies.category_id = categories.id)"))
       .each_with_index
       .reduce("") do |text, (row)|
         vacancy_size += row.second
