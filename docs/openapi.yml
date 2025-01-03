@@ -1,14 +1,305 @@
-openapi: "3.1.2"
+openapi: 3.1.2
 
 info:
   title: "Апи для Вакантист"
   version: "1.0"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "Идентификатор пользователя в базе данных"
+        name:
+          type: string
+          description: "Имя в telegram"
+        username:
+          type: string
+          description: "tg @username в telegram"
+        email:
+          type: string
+          description: "Email"
+        phone:
+          type: string
+          description: "Phone"
+        platform_id:
+          type: string
+          description: "user id в telegram"
+        created_at:
+          type: string
+          description: "Дата создания пользователя"
+        updated_at:
+          type: string
+          description: "Дата последнего изменения"
+        point:
+          type: integer
+          description: "Количество оплаченных поинтов"
+        bonus:
+          type: integer
+          description: "Количество бесплатных поинтов"
+        bot_status:
+          type: string
+          description: "Статус пользователя. works or bot_blocked"
+
+    UsersList:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+    
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID категории"
+        name:
+          type: string
+          description: "Название категории"
+    Vacancy:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID вакансии"
+        title:
+          type: string
+          description: "Категория или название вакансии"
+        category_title:
+          type: string
+          description: "Категория вакансии"
+        description:
+          type: string
+          description: "Описание вакансии"
+        contact_information:
+          type: string
+          description: "Контактная информация"
+        source:
+          type: string
+          description: "Откуда пришла вакансия (тг или другие соц сети)"
+        platform_id:
+          type: string
+          description: "platform id отправителя"
+        
+  parameters:
+    UserIdParam:
+      name: id
+      in: path
+      description: "ID существующего пользователя"
+      example: 22
+      required: true
+      schema:
+        type: integer
+ 
+  responses:
+    UserSuccessResponse:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            title: Category
+            type: object
+            properties:
+              status: 
+                type: string
+                description: "success"
+            example:
+              status: "success"
   
-paths: 
-  "/api/vacancy":
+    UserValidationErrorResponse:
+      description: "Error: Validation failed"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                description: "Ошибка валидации"
+            example:
+              status: "Validation failed"
+    
+
+paths:
+  "/api/users/{id}/set_status":
+    post:
+      tags:
+       - "User methods"
+      summary: "Edit user status in bot"
+      operationId: EditStatus
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bot_status: 
+                  type: string
+                  description: "Новый статус пользоватя. works или bot_blocked"
+                  example: "works"
+              required:
+                - bot_status
+      responses:
+        "200":
+          $ref: '#/components/responses/UserSuccessResponse'
+        "422":
+          $ref: '#/components/responses/UserValidationErrorResponse'
+          
+  "/api/users/{id}/set_bonus":
+    post:
+      tags:
+       - "User methods"
+      summary: "Edit the number of bonus"
+      operationId: EditBonus
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bonus: 
+                  type: integer
+                  description: "Количество бонусных поинтов"
+                  example: 30
+              required:
+                - bonus  
+      responses:
+        "200":
+          $ref: '#/components/responses/UserSuccessResponse'
+        "422":
+          $ref: '#/components/responses/UserValidationErrorResponse'
+  
+  "/api/users/{id}":
+    get:
+      tags:
+        - "User methods"
+      summary: "Get user"
+      operationId: GetUser
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                value:
+                  id: 1
+                  name: "Имя 1"
+                  username: "examplename1"
+                  email: "example@gmail.com"
+                  phone: "799999999999"
+                  platform_id: "9238841234"
+                  created_at: "16.12.2024"
+                  updated_at: "16.12.2024"
+                  point: 12
+                  bonus: 0
+                  bot_status: "works"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+                example:
+                  error: "Такого пользователя не существует" 
+  "/api/users":
     get: 
       tags: 
-        - "Get All Vacancies"
+        - "User methods"
+      summary: "Get all users"
+      operationId: GetAllUsers
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersList'
+              example:
+                - id: 1
+                  name: "Имя 1"
+                  username: "examplename1"
+                  email: "example@gmail.com"
+                  phone: "799999999999"
+                  platform_id: "9238841234"
+                  created_at: "16.12.2024"
+                  updated_at: "16.12.2024"
+                  point: 12
+                  bonus: 0
+                  bot_status: "works"
+                  
+                - id: 2
+                  name: "Имя 2"
+                  username: "examplename2"
+                  email: "example2@gmail.com"
+                  phone: "799999959999"
+                  platform_id: "45138841234"
+                  created_at: "14.12.2024"
+                  updated_at: "15.12.2024"
+                  point: 5
+                  bonus: 10
+                  bot_status: "bot_blocked"
+  "/api/users/mail_all":
+    post:
+      tags:
+       - "User methods"
+      summary: "Sending a mass message to telegram"
+      operationId: MailAll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: 
+                  type: string
+                  description: "Текст для отправки"
+                  example: "Какое-то длинное сообщение"
+              required:
+                - text  
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  status: 
+                    type: string
+                    description: "success"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                status: "Текст для рассылки не прошла проверку"
+  "/api/vacancies":
+    get: 
+      tags: 
+        - "Vacancy methods"
       summary: "Get all list vacancies"
       operationId: GetAllVacancies
       responses: 
@@ -20,29 +311,7 @@ paths:
                 title: Vacancies list
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      description: "ID вакансии"
-                    title:
-                      type: string
-                      description: "Категория или название вакансии"
-                    category_title:
-                      type: string
-                      description: "Категория вакансии"
-                    description:
-                      type: string
-                      description: "Описание вакансии"
-                    contact_information:
-                      type: string
-                      description: "Контактная информация"
-                    source:
-                      type: string
-                      description: "Откуда пришла вакансия (тг или другие соц сети)"
-                    platform_id:
-                      type: string
-                      description: "platform id отправителя"
+                  $ref: '#/components/schemas/Vacancy'
                 example:
                   - id: 1
                     title: "Технический специалист"
@@ -69,7 +338,7 @@ paths:
                     platform_id: "123123123"
     post: 
       tags: 
-        - "Create Vacancy"
+        - "Vacancy methods"
       summary: "Create a new vacancy"
       operationId: CreateVacancy
       requestBody:
@@ -116,30 +385,7 @@ paths:
           content:
             application/json:
               schema:
-                title: Vacancy
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    description: "ID вакансии"
-                  title:
-                    type: string
-                    description: "Категория или название вакансии"
-                  category_title:
-                    type: string
-                    description: "Категория вакансии"
-                  description:
-                    type: string
-                    description: "Описание вакансии"
-                  contact_information:
-                    type: string
-                    description: "Контактная информация"
-                  source:
-                    type: string
-                    description: "Откуда пришла вакансия (тг или другие соц сети)"
-                  platform_id:
-                    type: string
-                    description: "platform id отправителя"
+                $ref: '#/components/schemas/Vacancy'
               example:
                   id: 1
                   title: "Технический специалист"
@@ -159,8 +405,187 @@ paths:
                     type: string
                     description: "Ошибка валидации"
               example:
-                error: "Вакансия не прошла проверку"
-                
-          
+                error: "The vacancy has not been verified"
+  "/api/categories":
+    get:
+      tags:
+        - "Category methods"
+      summary: "Get all categories"
+      operationId: GetAllCategories
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Vacancies list
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+                example:
+                  - id: 1
+                    name: "Технический специалист"
+                  - id: 2
+                    name: "Копирайт"
+                  - id: 3
+                    name: "Дизайн"
+    post:
+      tags:
+        - "Category methods"
+      summary: "Create category"
+      operationId: CreateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  description: "Название новой категории для вакансий"
+                  example: "Тех-спец"
+              required:
+                - name
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Категория не прошла проверку"  
+  "/api/categories/{id}":
+    get:
+      tags:
+        - "Category methods"
+      summary: "Get category"
+      operationId: GetCategory
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующей категории"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      responses: 
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              example:
+                id: 2
+                name: "Технический специалист"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+                example:
+                  error: "Такой категории не существует"  
+    patch:
+      tags:
+        - "Category methods"
+      summary: "Update category"
+      operationId: UpdateCategory
+      parameters:
+        - name: id
+          in: path
+          description: "ID существующей категории"
+          example: 22
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  description: "Новое название для категории"
+              example:
+                  id: 22
+                  name: "Технический специалист"
+              required:
+                - name
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Такой категории не существует"
+    delete:
+      tags:
+        - "Category methods"
+      summary: "Destroy category"
+      operationId: DestroyCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 22
+          description: "ID категории для удаления"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: Category
+                type: object
+                properties:
+                  id: 
+                    type: integer
+                    description: "ID удалённой категории"
+        "422":
+          description: "Error: Validation failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "Ошибка валидации"
+              example:
+                error: "Такой категории не существует"
+
 servers:
   - url: https://ashabal.ru/

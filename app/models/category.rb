@@ -3,6 +3,5 @@ class Category < ApplicationRecord
   has_many :user, through: :subscriptions
   has_many :vacancies
 
-  validates :name, uniqueness: true,
-                   presence: true
+  validates :name, presence: true
 end
