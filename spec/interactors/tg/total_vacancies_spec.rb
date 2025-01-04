@@ -4,13 +4,17 @@ require 'rails_helper'
 RSpec.describe Tg::TotalVacanciesInteractor do
   
   describe "#execute" do 
+    let(:vacancy_size) {rand(1..4)}
     let!(:category) { create(:category) }
-    let!(:vacancies) { create_list(:vacancy, 3, category_title: category.name, category_id: category.id) }
+    let!(:vacancies) { create_list(:vacancy, vacancy_size, category_title: category.name, category_id: category.id) }
     let(:outcome) { described_class.run() }
 
-    it 'return string' do 
+    it 'return correct size' do
+      expect(outcome.result[:vacancy_size]).to eq(vacancy_size)
+    end
 
-      expect(outcome.result).to be_an_instance_of(String)
+    it 'return correct category count' do 
+      expect(outcome.result[:rows]).to eq(1)
     end
   end
 end

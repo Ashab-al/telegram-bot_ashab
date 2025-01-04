@@ -35,8 +35,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
-      respond_with :message, text: t('instructions')
-      menu 
+      respond_with :message, text: erb_render("start", binding)
+      menu
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
     end
@@ -66,10 +66,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when 'Поинты'
         points
       else
-        respond_with :message, text: Tg::TotalVacanciesInteractor.run().result,
+        @outcome = Tg::TotalVacanciesInteractor.run().result
+        respond_with :message, text: erb_render("menu/vacancies_info", binding),
                                 parse_mode: 'HTML'
 
-        respond_with :message, text: 'Это главное меню чат-бота', reply_markup: {
+        respond_with :message, text: erb_render("menu/defoult", binding), reply_markup: {
           keyboard: [["#{t('buttons.menu.points')}", "#{t('buttons.menu.advertisement')}", "#{t('buttons.menu.help')}"], 
                      ["#{t('buttons.menu.categories')}"]],
           resize_keyboard: true,
@@ -442,5 +443,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   def set_locale
     I18n.locale = :ru
+  end
+
+  def erb_render(action, new_binding)
+    ERB.new(File.read(Rails.root.join "app/views/telegram_webhooks/#{action}.html.erb")).result(new_binding)
   end
 end

@@ -1,0 +1,4 @@
+<%= I18n.t('vacancy.total_vacancies.all_vacancies_size', size: @outcome[:vacancy_size])  %>
+<% @outcome[:rows].each do | row | %>
+<%= I18n.t('vacancy.total_vacancies.category_and_vacancy_size', name: row.second.positive? ? "<b>#{row.first}</b>" : row.first, size: row.second) %>
+<% end %>
