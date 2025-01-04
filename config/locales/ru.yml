@@ -1,9 +1,10 @@
 ru:
+  flash: "⚡️"
   menu:
     defoult: "Это главное меню чат-бота"
   vacancy:
     total_vacancies:
-      all_vacancies_size: "<b>Всего вакансий отправлено:</b> %{size} ⚡️"
+      all_vacancies: "Всего вакансий отправлено:"
       category_and_vacancy_size: "%{name}: %{size}"
     source: "tg_chat"
     vacancy_plus_contacts: |

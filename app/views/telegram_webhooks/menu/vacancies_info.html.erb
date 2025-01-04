@@ -1,4 +1,4 @@
-<%= I18n.t('vacancy.total_vacancies.all_vacancies_size', size: @outcome[:vacancy_size])  %>
+<b><%= I18n.t('vacancy.total_vacancies.all_vacancies') %></b> <%= @outcome[:vacancies_size] %> <%= I18n.t('flash') %>
 <% @outcome[:rows].each do | row | %>
-<%= I18n.t('vacancy.total_vacancies.category_and_vacancy_size', name: row.second.positive? ? "<b>#{row.first}</b>" : row.first, size: row.second) %>
+<%= row.second.positive? ? "<b>#{row.first}</b>" : row.first %>: <%= row.second %>
 <% end %>
