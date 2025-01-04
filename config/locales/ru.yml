@@ -3,7 +3,7 @@ ru:
     default: "Это главное меню чат-бота"
   vacancy:
     total_vacancies:
-      all_vacancies: "Всего вакансий отправлено:"
+      all_vacancies: "Всего вакансий отправлено"
     source: "tg_chat"
     vacancy_plus_contacts: |
       <b>Категория:</b> %{category_title}
