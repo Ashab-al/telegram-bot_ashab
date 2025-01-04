@@ -70,7 +70,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         respond_with :message, text: erb_render("menu/vacancies_info", binding),
                                 parse_mode: 'HTML'
 
-        respond_with :message, text: erb_render("menu/defoult", binding), reply_markup: {
+        respond_with :message, text: erb_render("menu/default", binding), reply_markup: {
           keyboard: [["#{t('buttons.menu.points')}", "#{t('buttons.menu.advertisement')}", "#{t('buttons.menu.help')}"], 
                      ["#{t('buttons.menu.categories')}"]],
           resize_keyboard: true,
