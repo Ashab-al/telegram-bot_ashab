@@ -6,7 +6,7 @@ RSpec.describe "Vacancy", type: :request do
     
   describe "Request GET #index" do 
     let(:vacancies_size) {rand(1..10)}
-    let!(:vacancies) { create_list(:vacancy, vacancies_size, category_title: category.name) }
+    let!(:vacancies) { create_list(:vacancy, vacancies_size, category_title: category.name, category_id: category.id) }
 
     before { get "/api/vacancies" }
 
@@ -29,7 +29,8 @@ RSpec.describe "Vacancy", type: :request do
         contact_information: "@username",
         platform_id: "123123",
         source: "TG",
-        category_title: category.name
+        category_title: category.name,
+        category_id: category.id
       }
     }
     before do

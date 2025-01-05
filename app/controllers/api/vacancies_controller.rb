@@ -1,5 +1,6 @@
 class Api::VacanciesController < ApplicationController
   skip_before_action :verify_authenticity_token
+  before_action :set_locale
 
   def index
     render json: Vacancy.all, status: :ok
@@ -38,7 +39,12 @@ class Api::VacanciesController < ApplicationController
       description: params[:description],
       contact_information: params[:contact_information],
       platform_id: params[:platform_id],
-      source: params[:source]
+      source: params[:source],
+      category_id: params[:category_id]
     }
+  end
+
+  def set_locale
+    I18n.locale = :en
   end
 end

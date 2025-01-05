@@ -156,8 +156,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Tg::OpenVacancyInteractor err: #{e}")
         end
       when /^spam_mid_\d+_bdid_\d+/
-        data_scan = data_callback.scan(/\d+/)
-        spam_vacancy({ :message_id => data_scan[0], :vacancy_id => data_scan[1] })
+        @outcome = Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result
+        answer_callback_query erb_render("callback_query/spam_vacancy", binding), show_alert: true
         return true
 
       when "Получить вакансии"
@@ -388,21 +388,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def spam_vacancy(data)
-    vacancy = Vacancy.find(data[:vacancy_id])
-    contact_information = vacancy.source == "tg_chat" ? vacancy.platform_id : vacancy.contact_information
-  
-    blacklist = Blacklist.find_or_create_by(contact_information: contact_information) do |blacklist|
-      blacklist.complaint_counter = 0
-    end
-  
-    if blacklist.complaint_counter >= 2
-      answer_callback_query "Эта вакансия была определена как нежелательная и добавлена в наш черный список. 🚫😕", show_alert: true
-    else
-      answer_callback_query "Ваша жалоба на данную вакансию успешно отправлена. 🚀✅", show_alert: true
-      blacklist.increment!(:complaint_counter)
-    end
-  end
 
   def update_point_send_messag(text, data, message_id, button)
     begin
