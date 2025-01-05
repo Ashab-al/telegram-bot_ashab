@@ -3,6 +3,7 @@ class Tg::SpamVacancyInteractor < ActiveInteraction::Base
   integer :vacancy_id, presence: true
 
   def execute
+    
     vacancy = Vacancy.find_by(id: vacancy_id)
     contact_information = vacancy.source == "tg_chat" ? vacancy.platform_id : vacancy.contact_information
   
