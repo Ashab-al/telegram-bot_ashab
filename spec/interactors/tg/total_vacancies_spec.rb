@@ -10,11 +10,11 @@ RSpec.describe Tg::TotalVacanciesInteractor do
     let(:outcome) { described_class.run() }
 
     it 'return correct size' do
-      expect(outcome.result[:vacancy_size]).to eq(vacancies_size)
+      expect(outcome.result[:vacancies_size]).to eq(vacancies_size)
     end
 
     it 'return correct category count' do 
-      expect(outcome.result[:rows]).to eq(1)
+      expect(outcome.result[:rows].size).to eq(1)
     end
   end
 end

@@ -38,7 +38,8 @@ class Api::VacanciesController < ApplicationController
       description: params[:description],
       contact_information: params[:contact_information],
       platform_id: params[:platform_id],
-      source: params[:source]
+      source: params[:source],
+      category_id: params[:category_id]
     }
   end
 end
