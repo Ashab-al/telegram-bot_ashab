@@ -4,6 +4,6 @@ FactoryBot.define do
   end
 
   factory :blacklist_full, class: 'Blacklist' do 
-    complaint_counter { ENV['COMPLAINT_COUNTER'].to_i }
+    complaint_counter { Tg::SpamVacancyInteractor::COMPLAINT_COUNTER }
   end
 end
