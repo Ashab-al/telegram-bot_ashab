@@ -4,7 +4,7 @@ RSpec.describe Tg::SpamVacancyInteractor do
   
   describe "#execute" do 
     let(:first_complaint) { 1 }
-    let(:maximum_complaints) { ENV['COMPLAINT_COUNTER'].to_i }
+    let(:maximum_complaints) { Tg::SpamVacancyInteractor::COMPLAINT_COUNTER }
     let(:category) { create(:category) }
 
     describe "first complaint" do 

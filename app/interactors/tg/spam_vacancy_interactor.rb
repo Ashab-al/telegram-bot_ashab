@@ -1,5 +1,7 @@
 class Tg::SpamVacancyInteractor < ActiveInteraction::Base
   integer :id, presence: true
+  
+  COMPLAINT_COUNTER=2
 
   def execute
     vacancy = Vacancy.find_by(id: id)
@@ -9,7 +11,7 @@ class Tg::SpamVacancyInteractor < ActiveInteraction::Base
       blacklist.complaint_counter = 0
     end
     
-    return :blacklisted if blacklist.complaint_counter >= ENV['COMPLAINT_COUNTER'].to_i
+    return :blacklisted if blacklist.complaint_counter >= COMPLAINT_COUNTER
 
     blacklist.increment!(:complaint_counter)
   end

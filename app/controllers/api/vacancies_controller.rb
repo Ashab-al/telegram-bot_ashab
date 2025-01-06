@@ -1,6 +1,5 @@
 class Api::VacanciesController < ApplicationController
   skip_before_action :verify_authenticity_token
-  before_action :set_locale
 
   def index
     render json: Vacancy.all, status: :ok
