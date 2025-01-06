@@ -9,7 +9,7 @@ class Tg::SpamVacancyInteractor < ActiveInteraction::Base
       blacklist.complaint_counter = 0
     end
     
-    return :blacklisted if blacklist.complaint_counter >= 2
+    return :blacklisted if blacklist.complaint_counter >= ENV['COMPLAINT_COUNTER'].to_i
 
     blacklist.increment!(:complaint_counter)
   end

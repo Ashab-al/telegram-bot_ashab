@@ -4,6 +4,6 @@ FactoryBot.define do
   end
 
   factory :blacklist_full, class: 'Blacklist' do 
-    complaint_counter { 2 }
+    complaint_counter { ENV['COMPLAINT_COUNTER'].to_i }
   end
 end

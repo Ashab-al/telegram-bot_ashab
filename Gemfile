@@ -43,7 +43,7 @@ gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
 gem 'i18n'
 gem 'skooma'
-
+gem 'dotenv'
 # end
 
 group :pry do

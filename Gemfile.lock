@@ -87,6 +87,7 @@ GEM
       reline (>= 0.3.8)
     diff-lcs (1.5.1)
     domain_name (0.6.20240107)
+    dotenv (3.1.7)
     dry-core (1.0.2)
       concurrent-ruby (~> 1.0)
       logger
@@ -336,6 +337,7 @@ DEPENDENCIES
   active_interaction (~> 5.3)
   awesome_print
   debug
+  dotenv
   factory_bot_rails
   graphiql-rails
   graphql

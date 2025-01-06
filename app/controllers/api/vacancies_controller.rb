@@ -43,8 +43,4 @@ class Api::VacanciesController < ApplicationController
       category_id: params[:category_id]
     }
   end
-
-  def set_locale
-    I18n.locale = :en
-  end
 end
