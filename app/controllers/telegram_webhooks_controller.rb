@@ -58,7 +58,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when 'Категории'
         choice_category
       when 'Реклама'
-        respond_with :message, text: t('advertisement', text: Tg::AdvertisementInteractor.run().result)
+        @outcome = Tg::AdvertisementInteractor.run().result
+        respond_with :message, text: erb_render("menu/advertisement", binding), parse_mode: 'HTML'
         menu
       when 'Помощь'
         respond_with :message, text: t('instructions')
