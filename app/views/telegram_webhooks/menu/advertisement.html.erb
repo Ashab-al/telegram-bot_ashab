@@ -1,5 +1,5 @@
 <%= t('still_in_development') %>
-<b><%= t('advertisement') %></b>
-<% @outcome[:rows].each_with_index do | row, index | %>
+<b><%= t('advertisement') %>:</b>
+<% @outcome[:rows].each do | row | %>
 <b><%= row.first %>:</b> <%= row.second %>
 <% end %>
