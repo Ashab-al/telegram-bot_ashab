@@ -143,15 +143,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when /^mid_\d+_bdid_\d+/
         begin
           data_scan = data_callback.scan(/\d+/)
-
-          outcome = Tg::OpenVacancyInteractor.run(
-            bot: bot, 
-            user: @user, 
-            message_id: data_scan[0], 
-            vacancy_id: data_scan[1],
-            callback_id: Telegram.bot.get_updates["result"].first["callback_query"]["id"]
-          )
-
+          @outcome = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
+          
+          if @outcome.has_value?(:blacklist) || @outcome.has_value?(:out_of_points)
+            answer_callback_query erb_render(@outcome[:path_view], binding), show_alert: true
+          elsif @outcome.has_value?(:open_vacancy)
+            bot.edit_message_text(text: erb_render(@outcome[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML',
+              reply_markup: {inline_keyboard: Tg::Button::ForVacancyInteractor.run(user: @user, message_id: data_scan[0],vacancy_id: data_scan[1]).result})
+          end
           return true
         rescue => e 
           bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Tg::OpenVacancyInteractor err: #{e}")
