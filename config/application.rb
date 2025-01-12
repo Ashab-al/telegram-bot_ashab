@@ -24,5 +24,16 @@ module TelegramBotApp
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
     config.factory_bot.definition_file_paths = ["spec/factories"]
+    
+    lib = root.join("lib")
+
+    config.autoload_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.main.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
   end
 end
