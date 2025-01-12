@@ -10,7 +10,7 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
     vacancy = Vacancy.find_by(id: id)
     return errors.add(:params, :invalid) unless vacancy
 
-    chech_vacancy(vacancy)  
+    chech_vacancy(vacancy)
   end
 
   private

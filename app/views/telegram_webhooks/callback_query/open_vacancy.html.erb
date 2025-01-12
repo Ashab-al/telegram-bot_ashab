@@ -1,10 +1,10 @@
-<b><%= I18n.t('vacancy.category') %>:</b> <%= @outcome[:vacancy].category_title%>
-<b><%= I18n.t('vacancy.date_create') %>:</b> <%= @outcome[:vacancy].created_at.strftime('%d.%m.%Y %H:%M')%>
+<b><%= I18n.t('vacancy.category') %>:</b> <%= @open_vacancy[:vacancy].category_title%>
+<b><%= I18n.t('vacancy.date_create') %>:</b> <%= @open_vacancy[:vacancy].created_at.strftime('%d.%m.%Y %H:%M')%>
 <b><%= I18n.t('user.balance.total_balance') %>:</b> <%= @user.point + @user.bonus %>
 
-<%= @outcome[:vacancy].description%>
+<%= @open_vacancy[:vacancy].description%>
 
 <b><%= I18n.t('vacancy.contacts') %>:</b>
-<%= @outcome[:vacancy].contact_information%>
+<%= @open_vacancy[:vacancy].contact_information%>
 
 ⛄️ <%= I18n.t('vacancy.signature') %>
