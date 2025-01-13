@@ -9,12 +9,12 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
     vacancy = Vacancy.find_by(id: id)
     return errors.add(:params, :invalid) unless vacancy
 
-    chech_vacancy(vacancy)
+    check_vacancy(vacancy)
   end
 
   private
 
-  def chech_vacancy(vacancy)
+  def check_vacancy(vacancy)
     return {status: :out_of_points, path_view: "callback_query/out_of_points"} if user.bonus + user.point <= ZERO_BALANCE
 
     contact_information = vacancy.source == Tg::Constants::SOURCE ? vacancy.platform_id : vacancy.contact_information
@@ -28,8 +28,6 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
   def check_blacklist(contact_information)
     blacklist = Blacklist.find_by(:contact_information => contact_information)
 
-    return true if blacklist && blacklist.complaint_counter >= Tg::SpamVacancyInteractor::COMPLAINT_COUNTER
-
-    false
+    blacklist && blacklist.complaint_counter >= Tg::SpamVacancyInteractor::COMPLAINT_COUNTER
   end
 end
