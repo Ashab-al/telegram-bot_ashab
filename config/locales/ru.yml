@@ -21,7 +21,7 @@ ru:
   buttons:
     points: "Поинты"
     for_vacancy_message:
-      by_points: "Купить поинты %{smile}"
+      by_points: "Купить поинты"
       spam: "🤖 Спам 🤖"
       callback_data: "spam_mid_%{message_id}_bdid_%{vacancy_id}"
     menu:

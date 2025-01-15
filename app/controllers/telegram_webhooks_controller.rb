@@ -151,7 +151,15 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           ).result
           
           answer_callback_query erb_render(@open_vacancy[:path_view], binding), show_alert: true if outcome[:status] == :warning
-          bot.edit_message_text(text: erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', reply_markup: outcome[:button]) if outcome[:status] == :open
+          bot.edit_message_text(text: erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
+                                reply_markup: {
+                                  inline_keyboard: [
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{outcome[:smile]}", 
+                                      callback_data: "#{I18n.t('buttons.points')}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+                                      callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
+                                  ]
+                                }) if outcome[:status] == :open
 
           return true
         rescue => e 
