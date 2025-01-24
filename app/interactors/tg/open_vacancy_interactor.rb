@@ -4,6 +4,7 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
 
   REDUCE_BALANCE=1
   ZERO_BALANCE=0
+  POINTS_EDGE=5
 
   def execute
     vacancy = Vacancy.find_by(id: id)
@@ -26,7 +27,7 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
       status: :open_vacancy, 
       vacancy: vacancy, 
       path_view: "callback_query/open_vacancy", 
-      smile: user.point <= 5 ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')
+      smile: user.point <= POINTS_EDGE ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')
     }
   end
 
