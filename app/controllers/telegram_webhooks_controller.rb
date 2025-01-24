@@ -145,21 +145,16 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           data_scan = data_callback.scan(/\d+/)
           @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
 
-          outcome = Tg::Button::ForVacancyInteractor.run(
-            user: @user, outcome: @open_vacancy[:status], 
-            message_id: data_scan[0], vacancy_id: data_scan[1]
-          ).result
-          
-          answer_callback_query erb_render(@open_vacancy[:path_view], binding), show_alert: true if outcome[:status] == :warning
+          answer_callback_query erb_render(@open_vacancy[:path_view], binding), show_alert: true if @open_vacancy[:status] == :warning
           bot.edit_message_text(text: erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
                                 reply_markup: {
                                   inline_keyboard: [
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{outcome[:smile]}", 
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:smile]}", 
                                       callback_data: "#{I18n.t('buttons.points')}" }],
                                     [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
                                       callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
                                   ]
-                                }) if outcome[:status] == :open
+                                }) if @open_vacancy[:status] == :open_vacancy
 
           return true
         rescue => e 

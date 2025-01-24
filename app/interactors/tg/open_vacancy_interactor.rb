@@ -15,14 +15,19 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
   private
 
   def check_vacancy(vacancy)
-    return {status: :out_of_points, path_view: "callback_query/out_of_points"} if user.bonus + user.point <= ZERO_BALANCE
+    return {status: :warning, path_view: "callback_query/out_of_points"} if user.bonus + user.point <= ZERO_BALANCE
 
     contact_information = vacancy.source == Tg::Constants::SOURCE ? vacancy.platform_id : vacancy.contact_information
     
-    return {status: :blacklist, vacancy: vacancy, path_view: "callback_query/add_to_blacklist"} if check_blacklist(contact_information)
+    return {status: :warning, vacancy: vacancy, path_view: "callback_query/add_to_blacklist"} if check_blacklist(contact_information)
     return errors.add(:user_update, :error) unless user.update(user.bonus > ZERO_BALANCE ? {bonus: user.bonus - REDUCE_BALANCE} : {point: user.point - REDUCE_BALANCE}) 
     
-    {status: :open_vacancy, vacancy: vacancy, path_view: "callback_query/open_vacancy"}
+    {
+      status: :open_vacancy, 
+      vacancy: vacancy, 
+      path_view: "callback_query/open_vacancy", 
+      smile: user.point <= 5 ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')
+    }
   end
 
   def check_blacklist(contact_information)
