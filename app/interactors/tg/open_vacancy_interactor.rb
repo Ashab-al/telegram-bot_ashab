@@ -27,7 +27,7 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
       status: :open_vacancy, 
       vacancy: vacancy, 
       path_view: "callback_query/open_vacancy", 
-      smile: user.point <= POINTS_EDGE ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')
+      low_points: user.point <= POINTS_EDGE
     }
   end
 

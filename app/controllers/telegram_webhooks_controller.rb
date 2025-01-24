@@ -149,7 +149,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           bot.edit_message_text(text: erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
                                 reply_markup: {
                                   inline_keyboard: [
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:smile]}", 
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
                                       callback_data: "#{I18n.t('buttons.points')}" }],
                                     [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
                                       callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
