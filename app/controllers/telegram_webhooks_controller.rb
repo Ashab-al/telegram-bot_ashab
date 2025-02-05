@@ -167,6 +167,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
       when "Получить вакансии"
         send_vacancy_start # Доработка
+        # todo
         return true
 
       when "more_vacancies"
