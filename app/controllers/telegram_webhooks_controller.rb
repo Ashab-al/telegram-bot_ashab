@@ -176,17 +176,22 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
       when /^get_vacancies_start_\d+/
         
-        @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(subscribed_categories: @subscribed_categories, batch_start: data_callback.scan(/\d+/).first)
-
-        case @get_vacancies&.result[:status]
+        @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(
+          subscribed_categories: @subscribed_categories, 
+          batch_start: data_callback.scan(/\d+/).first
+        ).result
+        
+        case @get_vacancies[:status]
         when :subscribed_categories_empty
           answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
         when :vacancy_list_empty
           answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
         when :full_sended
           answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
+        else
+          send_vacancies(@get_vacancies)
         end
-        send_vacancies(@get_vacancies)
+        
         return true
       end
 
@@ -203,20 +208,31 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       @vacancy = vacancy
       @index = index
 
-      respond_with :message, text: erb_render("pagination/vacancy", binding),
-                                parse_mode: 'HTML'
-
-      # bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
-      #                           reply_markup: {
-      #                             inline_keyboard: [
-      #                               [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
-      #                                 callback_data: "#{I18n.t('buttons.points')}" }],
-      #                               [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-      #                                 callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
-      #                             ]
-      #                           })
+      message_id = respond_with(:message, text: erb_render("pagination/vacancy", binding),
+                                parse_mode: 'HTML')['result']['message_id']
+      sleep(0.1)
+      bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: message_id, chat_id: @user.platform_id, parse_mode: 'HTML', 
+                                reply_markup: {
+                                  inline_keyboard: [
+                                    [{ text: erb_render("button/get_contact", binding), callback_data: "mid_#{message_id}_bdid_#{@vacancy.id}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", 
+                                      callback_data: "#{I18n.t('buttons.points')}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+                                      callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: @vacancy.id ) }]
+                                  ]
+                                })
 
     end
+    respond_with(:message,
+      text: erb_render("pagination/sended_vacancies", binding), 
+      parse_mode: 'HTML',
+      reply_markup: {
+      inline_keyboard: [
+      [{ text: "Получить еще #{Pagination::GetVacanciesSliceInteractor::QUANTITY_VACANCIES} ➡️", 
+        callback_data: "get_vacancies_start_#{data[:last_item_number]}" }],
+      [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
+      ]
+    })
   end
 
   def pre_checkout_query(data)

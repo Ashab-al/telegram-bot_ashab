@@ -14,6 +14,7 @@ ru:
     contacts: "Контакты"
     signature: "Вакансия отправлена с помощью @infobizaa_bot"
     date_create: "Дата отправки"
+    get_contact: "Получить контакт"
   smile:
     full_battery: "🔋"
     low_battery: "🪫"

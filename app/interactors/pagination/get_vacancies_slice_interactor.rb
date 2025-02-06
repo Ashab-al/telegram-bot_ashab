@@ -1,9 +1,9 @@
 class Pagination::GetVacanciesSliceInteractor < ActiveInteraction::Base
-  object :subscribed_categories, presence: true
+  array :subscribed_categories, presence: true
   integer :batch_start, default: 0
 
-  QUANTITY_DAYS = 7
-  QUANTITY_VACANCIES = 3
+  QUANTITY_DAYS = 700
+  QUANTITY_VACANCIES = 2
   MINIMUM_SIZE = 1
 
   def execute
@@ -24,14 +24,13 @@ class Pagination::GetVacanciesSliceInteractor < ActiveInteraction::Base
       last_item_number: vacancy_list.index(batch&.last).next,
       full_size: vacancy_list.size
     }
-    
+
     if batch.nil? || batch&.size < MINIMUM_SIZE
       data[:status] = :full_sended
       data.delete(:batch)
       return data
     end
     
-
     data
   end
 end
