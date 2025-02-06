@@ -173,6 +173,21 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       when "more_vacancies"
         send_vacancy_next
         return true
+
+      when /^get_vacancies_start_\d+/
+        
+        @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(subscribed_categories: @subscribed_categories, batch_start: data_callback.scan(/\d+/).first)
+
+        case @get_vacancies&.result[:status]
+        when :subscribed_categories_empty
+          answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
+        when :vacancy_list_empty
+          answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
+        when :full_sended
+          answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
+        end
+        send_vacancies(@get_vacancies)
+        return true
       end
 
       category = Category.find_by(name: data_callback)
@@ -180,6 +195,27 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "callback_query err: #{e.inspect}")
+    end
+  end
+
+  def send_vacancies(data)
+    data[:batch].each_with_index do |vacancy, index|
+      @vacancy = vacancy
+      @index = index
+
+      respond_with :message, text: erb_render("pagination/vacancy", binding),
+                                parse_mode: 'HTML'
+
+      # bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
+      #                           reply_markup: {
+      #                             inline_keyboard: [
+      #                               [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
+      #                                 callback_data: "#{I18n.t('buttons.points')}" }],
+      #                               [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+      #                                 callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
+      #                             ]
+      #                           })
+
     end
   end
 
@@ -210,19 +246,17 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def send_vacancy_start
-    subscribed_categories_name = @subscribed_categories.map(&:name)
-    vacancy_list = Vacancy.where(category_title: subscribed_categories_name).
-                    where.not(platform_id: Blacklist.pluck(:contact_information)).
-                    where(created_at: 7.days.ago..Time.now).order(created_at: :asc)
+    get_vacancies = Pagination::GetVacanciesSliceInteractor.run(subscribed_categories: @subscribed_categories)
+    
+    case get_vacancies.result[:status]
+    when :subscribed_categories_empty
+      answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
 
-    if subscribed_categories_name.empty? 
-      answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
-                              show_alert: true
-      return false
-    elsif vacancy_list.empty?
-      answer_callback_query "📜 Вакансий не найдено 😞", 
-                              show_alert: true
-      return false
+      return get_vacancies.result[:status]
+    when :vacancy_list_empty
+      answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
+
+      return get_vacancies.result[:status]
     end
 
     session[:vacancy_list_start_number] = 0
@@ -337,7 +371,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           couple_button = []
         end
       end
-      buttons << [{text: "Получить вакансии 🔍", callback_data: "Получить вакансии"}]
+      buttons << [{text: "Получить вакансии 🔍", callback_data: "get_vacancies_start_0"}]
       {inline_keyboard: buttons}
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
