@@ -165,20 +165,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         answer_callback_query erb_render("callback_query/spam_vacancy", binding), show_alert: true
         return true
 
-      when "Получить вакансии"
-        send_vacancy_start # Доработка
-        # todo
-        return true
-
-      when "more_vacancies"
-        send_vacancy_next
-        return true
-
       when /^get_vacancies_start_\d+/
-        
+        batch_start = data_callback.scan(/\d+/).first
         @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(
           subscribed_categories: @subscribed_categories, 
-          batch_start: data_callback.scan(/\d+/).first
+          batch_start: batch_start
         ).result
         
         case @get_vacancies[:status]
@@ -188,10 +179,21 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
         when :full_sended
           answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
-        else
-          send_vacancies(@get_vacancies)
-        end
         
+        when :ok
+          send_vacancies(@get_vacancies, batch_start)
+          respond_with :message,
+            text: erb_render("pagination/sended_vacancies", binding), 
+            parse_mode: 'HTML',
+            reply_markup: {
+            inline_keyboard: [
+            [{ text: erb_render("pagination/get_more_vacancies", binding), 
+              callback_data: "get_vacancies_start_#{@get_vacancies[:last_item_number]}" }],
+            [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
+            ]
+          }
+        end
+          
         return true
       end
 
@@ -203,14 +205,17 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def send_vacancies(data)
+  def send_vacancies(data, last_index)
+    delay = Pagination::GetVacanciesSliceInteractor::DELAY / Pagination::GetVacanciesSliceInteractor::QUANTITY_VACANCIES
+
     data[:batch].each_with_index do |vacancy, index|
       @vacancy = vacancy
-      @index = index
-
+      @index = index + last_index.to_i
+      
+      sleep(delay)
       message_id = respond_with(:message, text: erb_render("pagination/vacancy", binding),
                                 parse_mode: 'HTML')['result']['message_id']
-      sleep(0.1)
+      
       bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: message_id, chat_id: @user.platform_id, parse_mode: 'HTML', 
                                 reply_markup: {
                                   inline_keyboard: [
@@ -223,16 +228,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                 })
 
     end
-    respond_with(:message,
-      text: erb_render("pagination/sended_vacancies", binding), 
-      parse_mode: 'HTML',
-      reply_markup: {
-      inline_keyboard: [
-      [{ text: "Получить еще #{Pagination::GetVacanciesSliceInteractor::QUANTITY_VACANCIES} ➡️", 
-        callback_data: "get_vacancies_start_#{data[:last_item_number]}" }],
-      [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
-      ]
-    })
   end
 
   def pre_checkout_query(data)
@@ -258,54 +253,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "pre_checkout_query err: #{e.inspect}")
-    end
-  end
-
-  def send_vacancy_start
-    get_vacancies = Pagination::GetVacanciesSliceInteractor.run(subscribed_categories: @subscribed_categories)
-    
-    case get_vacancies.result[:status]
-    when :subscribed_categories_empty
-      answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
-
-      return get_vacancies.result[:status]
-    when :vacancy_list_empty
-      answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
-
-      return get_vacancies.result[:status]
-    end
-
-    session[:vacancy_list_start_number] = 0
-    paginationservice = PaginationService.new(@user, vacancy_list.reverse, session[:vacancy_list_start_number])
-
-    session[:vacancy_list_start_number] = paginationservice.send_vacancy_pagination
-  end
-
-  def send_vacancy_next
-    subscribed_categories_name = @subscribed_categories.map(&:name)
-    vacancy_list = Vacancy.where(category_title: subscribed_categories_name).
-                    where.not(platform_id: Blacklist.pluck(:contact_information)).
-                    where(created_at: 7.days.ago..Time.now).order(created_at: :asc)
-    
-    if subscribed_categories_name.empty? 
-      answer_callback_query "📜 Выберите хотя бы одну категорию из предложенного списка", 
-                              show_alert: true
-      return false
-    elsif vacancy_list.empty?
-      answer_callback_query "📜 Вакансий не найдено 😞", 
-                              show_alert: true
-      return false
-    elsif session[:vacancy_list_start_number].nil?
-      choice_category
-      return false
-    end
-
-    paginationservice = PaginationService.new(@user, vacancy_list.reverse, session[:vacancy_list_start_number])
-    if session[:vacancy_list_start_number] >= vacancy_list.count 
-      answer_callback_query "📜 Все вакансии из ваших интересующих категорий успешно отправлены! ✅", 
-                                show_alert: true
-    else
-      session[:vacancy_list_start_number] = paginationservice.send_vacancy_pagination
     end
   end
 
