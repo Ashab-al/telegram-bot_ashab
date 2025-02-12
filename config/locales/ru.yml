@@ -58,6 +58,13 @@ ru:
       paid_bill: "Платный счет"
       bonus_account: "Бонусный счет"
       total_balance: "Всего поинтов на счету"
+    new_user: "Новый пользователь в боте"
+    username: "Имя пользователя"
+    tg_username: "username"
+    all_users_count: "Всего пользователей в боте"
+    users_status_works: "Все у кого статус works"
+    users_status_bot_blocked: "Все у кого статус bot_blocked"
+    
   advertisement: "Количество пользователей в боте"
   still_in_development: "(Еще в разработке)"
   instructions: | 

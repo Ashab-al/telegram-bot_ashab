@@ -6,7 +6,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   before_action :set_locale
 
-  before_action :load_user, except: [:update_bonus_users!, :total_vacancies_sent,
+  before_action :find_user, except: [:update_bonus_users!, :total_vacancies_sent,
                                      :choice_help, :marketing, :choice_category, 
                                      :message, :user_params, :spam_vacancy, :session_key]
   
@@ -274,45 +274,41 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   private
 
-  def load_user
-    begin
-      @user = User.find_by_platform_id(payload['from']['id'])
-      unless @user
-        @user = User.new(user_params(payload))
-        if @user.save
-          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, 
-          text: "Новый пользователь в боте\n\n" \
-                "Имя: #{@user.name}\n" \
-                "username: @#{@user.username}\n\n" \
-                "Всего пользователей в боте: #{User.all.size}\n" \
-                "Все у кого статус works: #{User.where(bot_status: "works").size}\n" \
-                "Все у кого статус bot_blocked: #{User.where(bot_status: "bot_blocked").size}"
-          )
-        else
-          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, 
-          text: "Пользователь не сохранился в бд #{payload}")
-        end
-      end
-      subscriptions = @user.subscriptions.includes(:category)
-      @subscribed_categories = subscriptions.map(&:category)
-      @user.update({:bot_status => "works"}) if @user.bot_status != "works"
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "load_user err: #{e}")
+  def find_user
+
+    outcome = Tg::User::ByPlatformIdInteractor.run(user_params(payload))
+
+    if outcome.errors.present?
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Пользователь не сохранился в бд #{errors_converter(outcome.errors)}, #{payload}")
+
+      raise errors_converter(outcome.errors)
     end
+
+    @user = outcome.result[:user]
+    @user.update({:bot_status => "works"}) if @user.bot_status != "works"
+
+    if outcome.result[:status] == :new_user
+      @analytics = {
+        users_count: User.count,
+        works_users: User.pluck(Arel.sql("(select count(*) from users where users.bot_status = 'works')")),
+        bot_blocked_users: User.pluck(Arel.sql("(select count(*) from users where users.bot_status = 'bot_blocked')"))
+      }
+
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
+    end
+    
+    subscriptions = @user.subscriptions.includes(:category)
+    @subscribed_categories = subscriptions.map(&:category)
   end
 
   def user_params(data)
-    begin
-      {
-        username: data['from']['username'] || "",
-        platform_id: data['from']['id'],
-        name: data['from']['first_name'] || "",
-        point: 0,
-        bonus: 5
-      }
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "user_params err: #{e}")
-    end
+    {
+      username: data['from']['username'] || "",
+      id: data['from']['id'],
+      name: data['from']['first_name'] || "",
+      point: 0,
+      bonus: 5
+    }
   end
 
   def formation_of_category_buttons

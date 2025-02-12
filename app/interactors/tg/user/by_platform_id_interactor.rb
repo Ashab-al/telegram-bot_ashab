@@ -10,17 +10,17 @@ class Tg::User::ByPlatformIdInteractor < ActiveInteraction::Base
     user = User.find_by(platform_id: id)
 
     unless user
-      new_user = User.new(
+      new_user = User.create(
         name: name,
         username: username,
         platform_id: id,
         point: point,
         bonus: bonus
-      ).save
+      )
 
-      return new_user
+      return {user: new_user, status: :new_user}
     end
 
-    user
+    {user: user, status: :old_user}
   end
 end

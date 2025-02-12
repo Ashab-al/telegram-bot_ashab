@@ -19,7 +19,7 @@ RSpec.describe Tg::User::ByPlatformIdInteractor do
       let(:old_user) { described_class.run(id: user.platform_id) }
 
       it 'return correct old user' do
-        expect(outcome.result).to eq(user)
+        expect(old_user.result[:user]).to eq(user)
       end
     end
     
@@ -27,8 +27,10 @@ RSpec.describe Tg::User::ByPlatformIdInteractor do
       let(:new_user) { described_class.run(user_second) }
       
       it 'return correct new user' do
-        expect(outcome.result.platform_id).to eq(user_second.id)
+        # binding.pry
+        expect(new_user.result[:user].platform_id).to eq(user_second[:id])
       end
     end
+
   end
 end
