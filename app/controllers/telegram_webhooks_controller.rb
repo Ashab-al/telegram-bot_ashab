@@ -290,10 +290,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     if outcome.result[:status] == :new_user
       @analytics = {
         users_count: User.count,
-        works_users: User.pluck(Arel.sql("(select count(*) from users where users.bot_status = 'works')")),
-        bot_blocked_users: User.pluck(Arel.sql("(select count(*) from users where users.bot_status = 'bot_blocked')"))
+        works_users: Categories::FindByUserQuery.new({bot_status: :works}, User).call.first,
+        bot_blocked_users: Categories::FindByUserQuery.new({bot_status: :bot_blocked}, User).call.first
       }
-
+      
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
     end
     
