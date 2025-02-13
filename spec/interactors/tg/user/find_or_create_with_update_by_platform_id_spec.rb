@@ -1,10 +1,14 @@
 require 'rails_helper'
 
 
-RSpec.describe Tg::User::ByPlatformIdInteractor do
+RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
   
   describe "#execute" do 
+    let(:status_bot_blocked) {"bot_blocked"}
+    let(:status_works) { "works" }
+
     let(:user_number) { rand(10..1000)}
+
     let(:user) { create(:user) }
     let(:user_second) {{
         name: "Name #{user_number}",
@@ -12,8 +16,9 @@ RSpec.describe Tg::User::ByPlatformIdInteractor do
         id: user_number,
         point: 0,
         bonus: 5,
-        bot_status: "works"
+        bot_status: status_works
         }}
+    let(:user_status_blocked) {create(:user, bot_status: status_bot_blocked)}
 
     describe "old user" do 
       let(:old_user) { described_class.run(id: user.platform_id) }
@@ -27,10 +32,16 @@ RSpec.describe Tg::User::ByPlatformIdInteractor do
       let(:new_user) { described_class.run(user_second) }
       
       it 'return correct new user' do
-        # binding.pry
         expect(new_user.result[:user].platform_id).to eq(user_second[:id])
       end
     end
 
+    describe "edit bot status to works" do 
+      let(:update_user) { described_class.run(user_status_blocked) }
+
+      it "return correct bot status" do 
+        expect(new_user.result[:user].bot_status).to eq(status_works)
+      end
+    end
   end
 end
