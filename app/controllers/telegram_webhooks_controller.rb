@@ -284,6 +284,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
 
     @user = outcome.result[:user]
+    @subscribed_categories ||= Categories::FindByUserQuery.new({subscribed_categories: :true}, @user).call
 
     if outcome.result[:status] == :new_user
       @analytics = {
@@ -294,9 +295,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
     end
-    
-    subscriptions = @user.subscriptions.includes(:category)
-    @subscribed_categories = subscriptions.map(&:category)
   end
 
   def user_params(data)
