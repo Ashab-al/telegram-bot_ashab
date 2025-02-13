@@ -20,7 +20,9 @@ class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction
 
       return {user: new_user, status: :new_user}
     end
-
+    
+    user.update({:bot_status => "works"}) if user.bot_status != "works"
+    
     {user: user, status: :old_user}
   end
 end

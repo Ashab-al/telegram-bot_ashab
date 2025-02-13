@@ -37,10 +37,10 @@ RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
     end
 
     describe "edit bot status to works" do 
-      let(:update_user) { described_class.run(user_status_blocked) }
+      let(:update_user) { described_class.run(id: user_status_blocked.platform_id) }
 
       it "return correct bot status" do 
-        expect(new_user.result[:user].bot_status).to eq(status_works)
+        expect(update_user.result[:user].bot_status).to eq(status_works)
       end
     end
   end

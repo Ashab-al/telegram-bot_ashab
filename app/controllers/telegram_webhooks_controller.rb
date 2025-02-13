@@ -277,7 +277,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def find_user
     outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(user_params(payload))
 
-    
     if outcome.errors.present?
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Пользователь не сохранился в бд #{errors_converter(outcome.errors)}, #{payload}")
 
@@ -285,7 +284,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
 
     @user = outcome.result[:user]
-    @user.update({:bot_status => "works"}) if @user.bot_status != "works"
 
     if outcome.result[:status] == :new_user
       @analytics = {
