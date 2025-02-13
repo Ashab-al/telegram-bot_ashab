@@ -1,4 +1,4 @@
-class Tg::User::ByPlatformIdInteractor < ActiveInteraction::Base
+class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction::Base
   integer :id, presence: true
   string :username, default: ""
   string :name, default: ""

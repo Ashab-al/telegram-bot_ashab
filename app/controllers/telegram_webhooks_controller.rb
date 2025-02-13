@@ -275,7 +275,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   private
 
   def find_user
-    outcome = Tg::User::ByPlatformIdInteractor.run(user_params(payload))
+    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(user_params(payload))
 
     
     if outcome.errors.present?
