@@ -15,7 +15,8 @@ class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction
         username: username,
         platform_id: id,
         point: point,
-        bonus: bonus
+        bonus: bonus,
+        bot_status: "works"
       )
 
       return {user: new_user, status: :new_user}

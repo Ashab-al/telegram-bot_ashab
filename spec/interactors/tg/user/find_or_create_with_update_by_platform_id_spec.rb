@@ -4,8 +4,8 @@ require 'rails_helper'
 RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
   
   describe "#execute" do 
-    let(:status_bot_blocked) {"bot_blocked"}
-    let(:status_works) { "works" }
+    let(:status_bot_blocked) { User::BOT_STATUS[0] }
+    let(:status_works) { User::BOT_STATUS[1] }
 
     let(:user_number) { rand(10..1000)}
 

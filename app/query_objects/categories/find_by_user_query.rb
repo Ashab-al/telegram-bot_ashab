@@ -8,13 +8,15 @@ class Categories::FindByUserQuery
   def call
     filter_by_bot_status
     filter_by_subscribed_categories
+
+    @relation
   end
 
   private
 
   def filter_by_bot_status
     if @params[:bot_status].present?
-      @relation = @relation.pluck(Arel.sql("(select count(*) from users where users.bot_status = '#{@params[:bot_status].to_s}')"))
+      @relation = @relation.pluck(Arel.sql("(select count(*) from users where users.bot_status = '#{@params[:bot_status]}')"))
     end
   end
 

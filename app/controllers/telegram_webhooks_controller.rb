@@ -6,9 +6,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
   before_action :set_locale
 
-  before_action :find_user, except: [:update_bonus_users!, :total_vacancies_sent,
+  before_action :find_or_create_user_and_send_analytics, except: [:update_bonus_users!, :total_vacancies_sent,
                                      :choice_help, :marketing, :choice_category, 
                                      :message, :user_params, :spam_vacancy, :session_key]
+
+  before_action :find_user_subscribe, except: [:update_bonus_users!, :total_vacancies_sent,
+                                      :choice_help, :marketing, :choice_category, 
+                                      :message, :user_params, :spam_vacancy, :session_key]
   
   # bin/rake telegram:bot:poller   запуск бота
 
@@ -274,28 +278,31 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   private
 
-  def find_user
+  def find_user_subscribe
+    @subscribed_categories ||= Tg::Category::FindUserSubscribeInteractor.run(user: @user).result
+  end
+
+  def find_or_create_user_and_send_analytics
     outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(user_params(payload))
 
-    
     if outcome.errors.present?
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Пользователь не сохранился в бд #{errors_converter(outcome.errors)}, #{payload}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
 
       raise errors_converter(outcome.errors)
     end
 
     @user = outcome.result[:user]
-    @subscribed_categories ||= Categories::FindByUserQuery.new({subscribed_categories: :true}, @user).call
-
-    if outcome.result[:status] == :new_user
-      @analytics = {
-        users_count: User.count,
-        works_users: Categories::FindByUserQuery.new({bot_status: :works}, User).call.first,
-        bot_blocked_users: Categories::FindByUserQuery.new({bot_status: :bot_blocked}, User).call.first
-      }
-      
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
-    end
+    
+    send_analytics if outcome.result[:status] == :new_user
+  end
+  
+  def send_analytics
+    @analytics = {
+      users_count: User.count,
+      works_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS[1]}, User).call.first,
+      bot_blocked_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS[0]}, User).call.first
+    }
+    bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
   end
 
   def user_params(data)

@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  BOT_STATUS=["bot_blocked", "works"]
+
   has_many :subscriptions, dependent: :destroy
   has_many :category, through: :subscriptions
 
