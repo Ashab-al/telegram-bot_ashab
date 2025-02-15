@@ -3,16 +3,12 @@ require_relative '../services/pagination_service'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
+
+  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :user_params, :session_key]
   
   before_action :set_locale
-
-  before_action :find_or_create_user_and_send_analytics, except: [:update_bonus_users!, :total_vacancies_sent,
-                                     :choice_help, :marketing, :choice_category, 
-                                     :message, :user_params, :spam_vacancy, :session_key]
-
-  before_action :find_user_subscribe, except: [:update_bonus_users!, :total_vacancies_sent,
-                                      :choice_help, :marketing, :choice_category, 
-                                      :message, :user_params, :spam_vacancy, :session_key]
+  before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
+  before_action :subscribed_categories, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
   
   # bin/rake telegram:bot:poller   запуск бота
 
@@ -278,7 +274,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   private
 
-  def find_user_subscribe
+  def subscribed_categories
     @subscribed_categories ||= Tg::Category::FindSubscribeInteractor.run(user: @user).result
   end
 

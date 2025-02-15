@@ -14,4 +14,6 @@ class User < ApplicationRecord
   validates :email, uniqueness: true, allow_blank: true
 
   validates :phone, uniqueness: true, allow_blank: true
+
+  scope :where_bot_status, ->(bot_status) { where(bot_status: bot_status) }
 end

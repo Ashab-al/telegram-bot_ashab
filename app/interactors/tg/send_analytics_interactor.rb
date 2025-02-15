@@ -7,10 +7,10 @@ class Tg::SendAnalyticsInteractor < ActiveInteraction::Base
     @user = user
     @analytics = {
       users_count: User.count,
-      works_users: Users::FindUserQuery.new({bot_status: User::BOT_STATUS_WORKS}, User).call.count,
-      bot_blocked_users: Users::FindUserQuery.new({bot_status: User::BOT_STATUS_BLOCKED}, User).call.count
+      works_users: User.where_bot_status(User::BOT_STATUS_WORKS).count,
+      bot_blocked_users:  User.where_bot_status(User::BOT_STATUS_BLOCKED).count
     }
-
+    # Переменные экземпляра используются чтобы они могли использоваться во вью (для отправки сообщения через бота)
     Telegram.bot.send_message(
       chat_id: Rails.application.secrets.errors_chat_id, 
       text: ERB.new(File.read(Rails.root.join ANALYTICS_VIEW_PATH)).result(binding)
