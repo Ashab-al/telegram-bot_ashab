@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 
-RSpec.describe Tg::Category::FindUserSubscribeInteractor do
+RSpec.describe Tg::Category::FindSubscribeInteractor do
   
   describe "#execute" do 
     let(:category) { create(:category) }

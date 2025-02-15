@@ -1,4 +1,4 @@
-class Tg::Category::FindUserSubscribeInteractor < ActiveInteraction::Base
+class Tg::Category::FindSubscribeInteractor < ActiveInteraction::Base
   object :user, presence: true
 
   def execute

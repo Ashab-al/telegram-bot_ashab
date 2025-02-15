@@ -279,7 +279,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   private
 
   def find_user_subscribe
-    @subscribed_categories ||= Tg::Category::FindUserSubscribeInteractor.run(user: @user).result
+    @subscribed_categories ||= Tg::Category::FindSubscribeInteractor.run(user: @user).result
   end
 
   def find_or_create_user_and_send_analytics
@@ -299,8 +299,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def send_analytics
     @analytics = {
       users_count: User.count,
-      works_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS[1]}, User).call.first,
-      bot_blocked_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS[0]}, User).call.first
+      works_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS_WORKS}, User).call.first,
+      bot_blocked_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS_BLOCKED}, User).call.first
     }
     bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
   end
