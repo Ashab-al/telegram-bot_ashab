@@ -1,0 +1,8 @@
+№ <%= @index.next %>
+<b><%= I18n.t('vacancy.category') %>:</b> <%= @vacancy.title %>
+<b><%= I18n.t('vacancy.date_create') %>:</b> <%= @vacancy.created_at.strftime('%d.%m.%Y, %H:%M') %>
+<b><%= I18n.t('user.balance.total_balance') %>:</b> <%= @user.point + @user.bonus %>
+
+<%= @vacancy.description %>
+
+<%= I18n.t('vacancy.signature') %>
