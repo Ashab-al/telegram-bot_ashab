@@ -292,19 +292,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
 
     @user = outcome.result[:user]
-    
-    send_analytics if outcome.result[:status] == :new_user
   end
   
-  def send_analytics
-    @analytics = {
-      users_count: User.count,
-      works_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS_WORKS}, User).call.first,
-      bot_blocked_users: Categories::FindByUserQuery.new({bot_status: User::BOT_STATUS_BLOCKED}, User).call.first
-    }
-    bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: erb_render("analytics", binding))
-  end
-
   def user_params(data)
     {
       username: data['from']['username'] || "",

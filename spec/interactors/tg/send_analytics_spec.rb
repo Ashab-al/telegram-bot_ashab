@@ -1,13 +1,17 @@
 require 'rails_helper'
 
-Rspec.describe Tg::SendAnalyticsInteractor do 
+RSpec.describe Tg::SendAnalyticsInteractor do 
 
   describe "#execute" do 
-    let!(:user) { create(:user) }
-    let!(:user) { create(:user) }
-    let!(:user) { create(:user, bot_status: User::BOT_STATUS_BLOCKED) }
-    let!(:user) { create(:user, bot_status: User::BOT_STATUS_BLOCKED) }
-    let(:outcome) { described_class.run() }
+    before do
+      allow(Telegram.bot).to receive(:send_message)
+    end
+    let!(:user_1) { create(:user) }
+    let!(:user_2) { create(:user) }
+    let!(:user_3) { create(:user, bot_status: User::BOT_STATUS_BLOCKED) }
+    let!(:user_4) { create(:user, bot_status: User::BOT_STATUS_BLOCKED) }
+    
+    let(:outcome) { described_class.run(user: user_1) }
 
     it "return correct count all users" do 
       expect(outcome.result[:users_count]).to eq(User.count)

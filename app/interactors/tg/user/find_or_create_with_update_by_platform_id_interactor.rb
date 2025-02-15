@@ -19,6 +19,8 @@ class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction
         bot_status: "works"
       )
 
+      Tg::SendAnalyticsInteractor.run(user: new_user)
+
       return {user: new_user, status: :new_user}
     end
     
