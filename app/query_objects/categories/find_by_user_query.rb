@@ -15,7 +15,7 @@ class Categories::FindByUserQuery
 
   def filter_by_subscribed_categories
     if @params[:subscribed_categories].present?
-      @relation = @relation.where(Subscription.where(user_id: @params[:user_id]).select(:category_id))
+      @relation = @relation.where(id: Subscription.where(user_id: @params[:user_id]).select(:category_id))
     end
   end
 end

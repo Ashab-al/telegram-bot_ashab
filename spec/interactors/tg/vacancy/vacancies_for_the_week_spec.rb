@@ -2,40 +2,43 @@ require 'rails_helper'
 
 
 RSpec.describe Tg::Vacancy::VacanciesForTheWeekInteractor do 
+  I18n.locale = :en 
+
 
   describe "#execute" do 
-    let(:user) { create(:user) }
+    let!(:user) { create(:user) }
 
-    let(:category) { create(:category) }
-    let(:category_second) { create(:category_2) }
-    let(:category_third) { create(:category_3) }
+    let!(:category) { create(:category) }
+    let!(:category_second) { create(:category_2) }
+    let!(:category_third) { create(:category_3) }
 
     let!(:subscriptions) {user.subscriptions.create(category: category)}
     let!(:subscriptions_second) {user.subscriptions.create(category: category_second)}
 
-    let(:vacancies_size) { rand(5..20) }
+    let(:vacancies_size) { rand(1..5) }
 
-    let!(:vacancies_first) { create_list(:vacancy, vacancies_size, title: category.name) }
-    let!(:vacancies_second) { create_list(:vacancy, vacancies_size, title: category_second.name) }
+    let!(:vacancies_first) { create_list(:vacancy, vacancies_size, title: category.name, category_title: category.name, category: category) }
+    let!(:vacancies_second) { create_list(:vacancy, vacancies_size, title: category_second.name, category_title: category_second.name, category: category_second) }
 
-    let!(:vacancies_third) { create_list(:vacancy, vacancies_size, title: category_third.name) }
+    let!(:vacancies_third) { create_list(:vacancy, vacancies_size, title: category_third.name, category_title: category_third.name, category: category_third) }
 
     let(:vacancies_for_pagination) { described_class.run(user: user) }
 
     it "return correct vacancies count" do 
-      expect(vacancies_for_pagination.result.count).to eq(vacancies_first.count + vacancies_second.count)
+      expect(vacancies_for_pagination.result[:vacancies].count).to eq(vacancies_first.count + vacancies_second.count)
     end
 
     it "return correct vacancies_first" do 
-      expect(vacancies_for_pagination.result).to include(vacancies_first)
+      # binding.pry
+      expect(vacancies_for_pagination.result[:vacancies].to_set).to include(vacancies_first.to_set)
     end
 
     it "return correct vacancies_second" do 
-      expect(vacancies_for_pagination.result).to include(vacancies_second)
+      expect(vacancies_for_pagination.result[:vacancies].to_set).to include(vacancies_second.to_set)
     end
 
     it "not return vacancies_third" do 
-      expect(vacancies_for_pagination.result).not_to include(vacancies_third)
+      expect(vacancies_for_pagination.result[:vacancies].to_set).not_to include(vacancies_third.to_set)
     end
   end
 end

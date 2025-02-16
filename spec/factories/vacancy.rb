@@ -1,6 +1,7 @@
 FactoryBot.define do 
   factory :vacancy do 
     title { "Тех-спец" }
+    category_title { "Тех-спец" }
     description { "Описание" }
     source { "tg_chat" }
     sequence(:contact_information) { |n| "@username#{n}" }
@@ -9,6 +10,7 @@ FactoryBot.define do
 
   factory :vacancy_2, class: 'Vacancy'do 
     title { "Дизайн" }
+    category_title { "Дизайн" }
     description { "Описание2" }
     source { "tg_chat" }
     sequence(:contact_information) { |n| "@username#{n}" }
