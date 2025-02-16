@@ -168,39 +168,34 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
       when /^get_vacancies_start_\d+/
         page = data_callback.scan(/\d+/).first
-
-        @pagy, @records = pagy(Vacancy.all, page: page)
-        next_page = @page.next
-        count_records = @page.count
-        last_page = @pagy.last
-
-        # @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(
-        #   subscribed_categories: @subscribed_categories, 
-        #   batch_start: batch_start
-        # ).result
         
-        # case @get_vacancies[:status]
-        # when :subscribed_categories_empty
-        #   answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
-        # when :vacancy_list_empty
-        #   answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
-        # when :full_sended
-        #   answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
+        vacancies = Tg::Vacancy::VacanciesForTheWeekInteractor.run(user: @user).result
+
+        case vacancies[:status]
+        when :subscribed_categories_empty
+          answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
+          return
+        when :vacancy_list_empty
+          answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
+          return
+        when :ok
+          @pagy, @records = pagy(vacancies[:vacancies], page: page)
+
+          send_vacancies(@records, @pagy.from)
+
+          respond_with :message,
+            text: erb_render("pagination/sended_vacancies", binding), 
+            parse_mode: 'HTML',
+            reply_markup: {
+            inline_keyboard: [
+            [{ text: erb_render("pagination/get_more_vacancies", binding), 
+              callback_data: "get_vacancies_start_#{@pagy.next || @pagy.last}" }],
+            [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
+            ]
+          }
         
-        # when :ok
-        #   send_vacancies(@get_vacancies, batch_start)
-        #   respond_with :message,
-        #     text: erb_render("pagination/sended_vacancies", binding), 
-        #     parse_mode: 'HTML',
-        #     reply_markup: {
-        #     inline_keyboard: [
-        #     [{ text: erb_render("pagination/get_more_vacancies", binding), 
-        #       callback_data: "get_vacancies_start_#{@get_vacancies[:last_item_number]}" }],
-        #     [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
-        #     ]
-        #   }
-        # end
-          
+          answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true if @pagy.next.nil?
+        end
         return true
       end
 
@@ -209,31 +204,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "callback_query err: #{e.inspect}")
-    end
-  end
-
-  def send_vacancies(data, last_index)
-    delay = Pagination::GetVacanciesSliceInteractor::DELAY / Pagination::GetVacanciesSliceInteractor::QUANTITY_VACANCIES
-
-    data[:batch].each_with_index do |vacancy, index|
-      @vacancy = vacancy
-      @index = index + last_index.to_i
-      
-      sleep(delay)
-      message_id = respond_with(:message, text: erb_render("pagination/vacancy", binding),
-                                parse_mode: 'HTML')['result']['message_id']
-      
-      bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: message_id, chat_id: @user.platform_id, parse_mode: 'HTML', 
-                                reply_markup: {
-                                  inline_keyboard: [
-                                    [{ text: erb_render("button/get_contact", binding), callback_data: "mid_#{message_id}_bdid_#{@vacancy.id}" }],
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", 
-                                      callback_data: "#{I18n.t('buttons.points')}" }],
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-                                      callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: @vacancy.id ) }]
-                                  ]
-                                })
-
     end
   end
 
@@ -401,6 +371,32 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                   
       @user.update(data)            
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_point_send_messag Вакансия успешно отправлена ✅ err: #{e}")
+    end
+  end
+
+  def send_vacancies(vacancies, start_number_vacancy)
+    delay = Tg::Vacancy::VacanciesForTheWeekInteractor::DELAY / Pagy::DEFAULT[:limit]
+    
+    @number = start_number_vacancy
+    vacancies.each do | vacancy |
+      @vacancy = vacancy
+      
+      message_id = respond_with(:message, text: erb_render("pagination/vacancy", binding),
+                                parse_mode: 'HTML')['result']['message_id']
+      
+      bot.edit_message_text(text: erb_render("pagination/vacancy", binding), message_id: message_id, chat_id: @user.platform_id, parse_mode: 'HTML', 
+                                reply_markup: {
+                                  inline_keyboard: [
+                                    [{ text: erb_render("button/get_contact", binding), callback_data: "mid_#{message_id}_bdid_#{@vacancy.id}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", 
+                                      callback_data: "#{I18n.t('buttons.points')}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+                                      callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: @vacancy.id ) }]
+                                  ]
+                                })
+
+      @number += 1
+      sleep(delay)
     end
   end
 

@@ -29,7 +29,6 @@ RSpec.describe Tg::Vacancy::VacanciesForTheWeekInteractor do
     end
 
     it "return correct vacancies_first" do 
-      # binding.pry
       expect(vacancies_for_pagination.result[:vacancies].to_set).to include(vacancies_first.to_set)
     end
 
