@@ -179,7 +179,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
           return
         when :ok
-          @pagy, @records = pagy(vacancies[:vacancies], page: page)
+          @pagy, @records = pagy(vacancies[:vacancies], page: page, params: {})
 
           send_vacancies(@records, @pagy.from)
 
@@ -424,10 +424,5 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def callback_id
     Telegram.bot.get_updates["result"].first["callback_query"]["id"]
-  end
-
-  def params
-    # params добавлен для гема pagy
-    payload
   end
 end

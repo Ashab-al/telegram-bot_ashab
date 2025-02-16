@@ -2,9 +2,6 @@ require 'rails_helper'
 
 
 RSpec.describe Tg::Vacancy::VacanciesForTheWeekInteractor do 
-  I18n.locale = :en 
-
-
   describe "#execute" do 
     let!(:user) { create(:user) }
 
