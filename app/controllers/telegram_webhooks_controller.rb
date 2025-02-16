@@ -3,6 +3,7 @@ require_relative '../services/pagination_service'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
+  include Pagy::Backend
 
   IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :user_params, :session_key]
   
@@ -166,33 +167,39 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
 
       when /^get_vacancies_start_\d+/
-        batch_start = data_callback.scan(/\d+/).first
-        @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(
-          subscribed_categories: @subscribed_categories, 
-          batch_start: batch_start
-        ).result
+        page = data_callback.scan(/\d+/).first
+
+        @pagy, @records = pagy(Vacancy.all, page: page)
+        next_page = @page.next
+        count_records = @page.count
+        last_page = @pagy.last
+
+        # @get_vacancies = Pagination::GetVacanciesSliceInteractor.run(
+        #   subscribed_categories: @subscribed_categories, 
+        #   batch_start: batch_start
+        # ).result
         
-        case @get_vacancies[:status]
-        when :subscribed_categories_empty
-          answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
-        when :vacancy_list_empty
-          answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
-        when :full_sended
-          answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
+        # case @get_vacancies[:status]
+        # when :subscribed_categories_empty
+        #   answer_callback_query erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
+        # when :vacancy_list_empty
+        #   answer_callback_query erb_render("pagination/vacancy_list_empty", binding), show_alert: true
+        # when :full_sended
+        #   answer_callback_query erb_render("pagination/sended_vacancies", binding), show_alert: true
         
-        when :ok
-          send_vacancies(@get_vacancies, batch_start)
-          respond_with :message,
-            text: erb_render("pagination/sended_vacancies", binding), 
-            parse_mode: 'HTML',
-            reply_markup: {
-            inline_keyboard: [
-            [{ text: erb_render("pagination/get_more_vacancies", binding), 
-              callback_data: "get_vacancies_start_#{@get_vacancies[:last_item_number]}" }],
-            [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
-            ]
-          }
-        end
+        # when :ok
+        #   send_vacancies(@get_vacancies, batch_start)
+        #   respond_with :message,
+        #     text: erb_render("pagination/sended_vacancies", binding), 
+        #     parse_mode: 'HTML',
+        #     reply_markup: {
+        #     inline_keyboard: [
+        #     [{ text: erb_render("pagination/get_more_vacancies", binding), 
+        #       callback_data: "get_vacancies_start_#{@get_vacancies[:last_item_number]}" }],
+        #     [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
+        #     ]
+        #   }
+        # end
           
         return true
       end
@@ -319,7 +326,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           couple_button = []
         end
       end
-      buttons << [{text: "Получить вакансии 🔍", callback_data: "get_vacancies_start_0"}]
+      buttons << [{text: "Получить вакансии 🔍", callback_data: "get_vacancies_start_1"}]
       {inline_keyboard: buttons}
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
@@ -411,9 +418,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-
-  private
-  
   def set_locale
     I18n.locale = :ru
   end
@@ -424,5 +428,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def callback_id
     Telegram.bot.get_updates["result"].first["callback_query"]["id"]
+  end
+
+  def params
+    # params добавлен для гема pagy
+    payload
   end
 end

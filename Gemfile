@@ -44,6 +44,7 @@ gem 'telegram-bot-types'
 gem 'i18n'
 gem 'skooma'
 gem 'dotenv'
+gem 'pagy'
 # end
 
 group :pry do
