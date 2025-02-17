@@ -6,7 +6,7 @@ RSpec.describe Tg::User::StatusChangesForBlock do
     let(:change_status) { described_class.run(user: user) }
 
     it "return success edit user status" do 
-      except(outcome.result.user.bot_status).to (User::BOT_STATUS_BLOCKED)
+      except(change_status.result.user.bot_status).to (User::BOT_STATUS_BLOCKED)
     end
   end
 end
