@@ -46,7 +46,7 @@ RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
     end
 
     describe "edit bot status to works" do 
-      let(:update_user) { described_class.run(chat: chat_hash_user_blocked, point: User::DEFAULT_POINT, bonus: User::DEFAULT_BONUS) }
+      let(:update_user) { described_class.run(chat: chat_hash_user_blocked) }
 
       it "return correct bot status" do 
         expect(update_user.result[:user].bot_status).to eq(status_works)
