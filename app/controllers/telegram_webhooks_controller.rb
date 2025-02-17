@@ -5,7 +5,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   include Pagy::Backend
 
-  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :user_params, :session_key]
+  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :session_key]
   
   before_action :set_locale
   before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
@@ -256,7 +256,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def find_or_create_user_and_send_analytics
-    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(user_params(payload))
+    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: chat)
 
     if outcome.errors.present?
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
@@ -267,16 +267,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     @user = outcome.result[:user]
   end
   
-  def user_params(data)
-    {
-      username: data['from']['username'] || "",
-      id: data['from']['id'],
-      name: data['from']['first_name'] || "",
-      point: 0,
-      bonus: 5
-    }
-  end
-
   def formation_of_category_buttons
     begin
       subscriptions = @user.subscriptions.includes(:category)
