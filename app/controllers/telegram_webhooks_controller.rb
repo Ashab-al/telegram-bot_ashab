@@ -242,11 +242,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def my_chat_member(data)
-    begin
-      @user.update({:bot_status => "bot_blocked"})
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "my_chat_member err: #{e}")
-    end
+    Tg::User::StatusChangesForBlockInteractor.run(user: @user)
   end
 
   private
