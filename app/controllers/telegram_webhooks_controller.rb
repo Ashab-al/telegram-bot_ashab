@@ -242,7 +242,13 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def my_chat_member(data)
-    Tg::User::StatusChangesForBlockInteractor.run(user: @user)
+    outcome = Tg::User::StatusChangesForBlockInteractor.run(user: @user)
+
+    if outcome.errors.present?
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+
+      raise errors_converter(outcome.errors)
+    end
   end
 
   private
