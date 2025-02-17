@@ -256,7 +256,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def find_or_create_user_and_send_analytics
-    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: chat, point: User::DEFAULT_POINT, bonus: User::DEFAULT_BONUS)
+    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: chat)
 
     if outcome.errors.present?
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
