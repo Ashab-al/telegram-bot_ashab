@@ -18,10 +18,14 @@ RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
         bonus: 5,
         bot_status: status_works
         }}
+
+    let(:chat_hash_user) { { id: user.platform_id, first_name: user.name, username: user.username } }
+    let(:chat_hash_user_second) { { id: user.platform_id, first_name: user.name, username: user.username } }
+
     let(:user_status_blocked) {create(:user, bot_status: status_bot_blocked)}
 
     describe "old user" do 
-      let(:old_user) { described_class.run(id: user.platform_id) }
+      let(:old_user) { described_class.run(chat: chat_hash_user, point: User::DEFAULT_POINT, bonus: User::DEFAULT_BONUS) }
 
       it 'return correct old user' do
         expect(old_user.result[:user]).to eq(user)
@@ -29,7 +33,7 @@ RSpec.describe Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor do
     end
     
     describe "new user" do
-      let(:new_user) { described_class.run(user_second) }
+      let(:new_user) { described_class.run(chat: chat_hash_user_second, point: User::DEFAULT_POINT, bonus: User::DEFAULT_BONUS) }
       
       it 'return correct new user' do
         expect(new_user.result[:user].platform_id).to eq(user_second[:id])
