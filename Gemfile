@@ -45,6 +45,7 @@ gem 'i18n'
 gem 'rails-i18n', '~> 7.0.0'
 gem 'skooma'
 gem 'dotenv'
+gem 'pagy'
 # end
 
 group :pry do
