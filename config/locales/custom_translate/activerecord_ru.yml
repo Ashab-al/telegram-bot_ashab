@@ -1,8 +1,0 @@
-ru:
-  activerecord:
-    errors:
-      messages:
-        record_invalid: "Ошибка валидации: %{errors}"
-        restrict_dependent_destroy:
-          has_one: "Невозможно удалить запись, так как существует зависимая %{record}"
-          has_many: "Невозможно удалить запись, так как существуют зависимые %{record}"
