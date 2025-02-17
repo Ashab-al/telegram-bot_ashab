@@ -18,6 +18,6 @@ class User < ApplicationRecord
 
   validates :phone, uniqueness: true, allow_blank: true
 
-  scope :active_bot, ->() { where(BOT_STATUS: BOT_STATUS_WORKS) }
-  scope :bot_blocked, ->() { where(BOT_STATUS: BOT_STATUS_BLOCKED) }
+  scope :active_bot, ->() { where(bot_status: BOT_STATUS_WORKS) }
+  scope :bot_blocked, ->() { where(bot_status: BOT_STATUS_BLOCKED) }
 end
