@@ -12,11 +12,11 @@ RSpec.describe Tg::User::SubscribeToCategoryInteractor do
     let(:subscription) { described_class.run(user: user, category: categories.first) }
 
     it "return correct create subscription" do 
-      expect(subscription.result.category).to eq(categories.first) 
+      expect(subscription.result.category.first).to eq(categories.first) 
     end
 
     it "return correct count subscription" do
-      expect(subscription.result.subscriptions).to eq(one_subscription)
+      expect(subscription.result.subscriptions.count).to eq(one_subscription)
     end
   end
 end
