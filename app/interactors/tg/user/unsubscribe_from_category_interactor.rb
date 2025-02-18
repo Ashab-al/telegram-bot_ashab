@@ -3,7 +3,7 @@ class Tg::User::UnsubscribeFromCategoryInteractor < ActiveInteraction::Base
   object :category, presence: true
 
   def execute
-    user.subscriptions.find_by(category: category)&.destroy
+    user.subscriptions.find_by(category: category).destroy
     user
   end
 end

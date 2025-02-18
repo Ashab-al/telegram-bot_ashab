@@ -3,7 +3,7 @@ class Tg::User::SubscribeToCategoryInteractor < ActiveInteraction::Base
   object :category, presence: true
 
   def execute
-    user.subscriptions.create!(category: category)
+    user.subscriptions.create(category: category)
     user
   end
 end
