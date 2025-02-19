@@ -36,7 +36,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
-      respond_with :message, text: erb_render("start", binding)
+      respond_with :message, text: erb_render("menu/instructions", binding), parse_mode: 'HTML'
       menu
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
@@ -62,23 +62,17 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       respond_with :message, text: erb_render("menu/advertisement", binding), parse_mode: 'HTML'
       menu
     when t('buttons.menu.help')
-      respond_with :message, text: t('instructions')
+      respond_with :message, text: erb_render("menu/instructions", binding), parse_mode: 'HTML'
       menu
     when t('buttons.menu.points')
       points
     else
       @outcome = Tg::TotalVacanciesInteractor.run().result
-      respond_with :message, text: erb_render("menu/vacancies_info", binding),
-                              parse_mode: 'HTML'
+      respond_with :message, text: erb_render("menu/vacancies_info", binding), parse_mode: 'HTML'
 
-      respond_with :message, text: erb_render("menu/default", binding), reply_markup: {
-        keyboard: [[
-          "#{t('buttons.menu.points')} #{t('buttons.menu.smile.diamond')}", "#{t('buttons.menu.advertisement')} #{t('buttons.menu.smile.stars')}", 
-          "#{t('buttons.menu.help')} #{t('buttons.menu.smile.gear')}"], 
-          ["#{t('buttons.menu.categories')} #{t('buttons.menu.smile.magnet')}"]],
-        resize_keyboard: true,
-        one_time_keyboard: true,
-        selective: true
+      respond_with :message, text: erb_render("menu/default", binding), parse_mode: 'HTML', reply_markup: {
+        keyboard: [[erb_render("menu/button/points", binding), erb_render("menu/button/advertisement", binding), erb_render("menu/button/help", binding)], 
+                   [erb_render("menu/button/categories", binding)]], resize_keyboard: true, one_time_keyboard: true, selective: true 
       }
     end
   end
