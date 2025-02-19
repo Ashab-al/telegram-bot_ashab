@@ -30,10 +30,15 @@ ru:
       spam: "🤖 Спам 🤖"
       callback_data: "spam_mid_%{message_id}_bdid_%{vacancy_id}"
     menu:
-      points: "Поинты 💎"
-      advertisement: "Реклама ✨"
-      help: "Помощь ⚙️"
-      categories: "Категории 🧲"
+      points: "Поинты"
+      advertisement: "Реклама"
+      help: "Помощь"
+      categories: "Категории"
+      smile:
+        diamond: "💎"
+        stars: "✨"
+        gear: "⚙️"
+        magnet: "🧲"
     by_points:
       point_10: "💎 10 поинтов - 30 ⭐️"
       point_30: "💎 30 поинтов - 85 ⭐️"
