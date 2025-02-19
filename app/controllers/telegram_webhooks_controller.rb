@@ -36,7 +36,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def start!(*)
     begin
-      respond_with :message, text: erb_render("start", binding)
+      respond_with :message, text: erb_render("menu/instructions", binding), parse_mode: 'HTML'
       menu
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
@@ -52,36 +52,28 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def menu(value = nil, *)
-    begin
-      save_context :menu
+    save_context :menu
 
-      case value
-      when 'Категории'
-        choice_category
-      when 'Реклама'
-        @outcome = Tg::AdvertisementInteractor.run().result
-        respond_with :message, text: erb_render("menu/advertisement", binding), parse_mode: 'HTML'
-        menu
-      when 'Помощь'
-        respond_with :message, text: t('instructions')
-        menu
-      when 'Поинты'
-        points
-      else
-        @outcome = Tg::TotalVacanciesInteractor.run().result
-        respond_with :message, text: erb_render("menu/vacancies_info", binding),
-                                parse_mode: 'HTML'
+    case value
+    when t('buttons.menu.categories')
+      choice_category
+    when t('buttons.menu.advertisement')
+      @outcome = Tg::AdvertisementInteractor.run().result
+      respond_with :message, text: erb_render("menu/advertisement", binding), parse_mode: 'HTML'
+      menu
+    when t('buttons.menu.help')
+      respond_with :message, text: erb_render("menu/instructions", binding), parse_mode: 'HTML'
+      menu
+    when t('buttons.menu.points')
+      points
+    else
+      @outcome = Tg::TotalVacanciesInteractor.run().result
+      respond_with :message, text: erb_render("menu/vacancies_info", binding), parse_mode: 'HTML'
 
-        respond_with :message, text: erb_render("menu/default", binding), reply_markup: {
-          keyboard: [["#{t('buttons.menu.points')}", "#{t('buttons.menu.advertisement')}", "#{t('buttons.menu.help')}"], 
-                     ["#{t('buttons.menu.categories')}"]],
-          resize_keyboard: true,
-          one_time_keyboard: true,
-          selective: true
-        }
-      end
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "menu err: #{e}")
+      respond_with :message, text: erb_render("menu/default", binding), parse_mode: 'HTML', reply_markup: {
+        keyboard: [[erb_render("menu/button/points", binding), erb_render("menu/button/advertisement", binding), erb_render("menu/button/help", binding)], 
+                   [erb_render("menu/button/categories", binding)]], resize_keyboard: true, one_time_keyboard: true, selective: true 
+      }
     end
   end
 
@@ -242,10 +234,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def my_chat_member(data)
-    begin
-      @user.update({:bot_status => "bot_blocked"})
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "my_chat_member err: #{e}")
+    outcome = Tg::User::StatusChangesForBlockInteractor.run(user: @user)
+
+    if outcome.errors.present?
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+
+      raise errors_converter(outcome.errors)
     end
   end
 
