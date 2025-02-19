@@ -96,7 +96,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_category
     begin
-      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(subscribed_categories: @subscribed_categories).result
+      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Buttons::WithAllCategories.new(@subscribed_categories).call
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
@@ -269,7 +269,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                   "\u{1FAAB} - означает что категория НЕ выбрана",
                             message_id: session[:category_message_id],
                             chat_id: @user.platform_id,
-                            reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(subscribed_categories: @subscribed_categories).result)
+                            reply_markup: Buttons::WithAllCategories.new(@subscribed_categories).call)
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "edit_message_category err: #{e}")
