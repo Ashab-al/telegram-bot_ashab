@@ -1,6 +1,9 @@
-RSpec.describe Tg::Category::CreateButtonsWithAllCategoriesInteracror do
+require 'rails_helper'
+
+
+RSpec.describe Tg::Category::CreateButtonsWithAllCategoriesInteractor do
   describe "#execute" do
-    let(:categories_count) { rand(2.6) }
+    let(:categories_count) { rand(2..6) }
     let(:one) { 1 }
     let(:two) { 2.0 }
     let(:user) { create(:user) }
