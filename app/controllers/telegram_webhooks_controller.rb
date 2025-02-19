@@ -88,10 +88,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def points
     begin
       points_message = respond_with :message,
-                  text: "#{t('user.name', name: from['first_name'])}\n\n" \
-                        "#{t('user.balance.point', point: @user.point)}\n" \
-                        "#{t('user.balance.bonus', bonus: @user.bonus)}\n\n" \
-                        "#{t('user.balance.recommendation')}",
+                  text: erb_render("points/description", binding),
                         reply_markup: {
                           inline_keyboard: [10, 30, 50, 100, 150, 200].map { | quantity | [{ text: t("buttons.by_points.point_#{quantity}"), 
                                                                                              callback_data: t("buttons.by_points.point_#{quantity}_callback") }] }
