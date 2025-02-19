@@ -8,7 +8,7 @@ RSpec.describe Tg::CreateTarifButtonsInteractor do
     let(:outcome) { described_class.run() }
 
     it "return correct count buttons" do
-      expect(outcome.result[:inline_keyboard].count).to eq(Tg::CreateTarifButtonsInteractor::TARIFS_PRICES.count)
+      expect(outcome.result.count).to eq(Tg::CreateTarifButtonsInteractor::TARIFS_PRICES.count)
     end
   end
 end

@@ -78,17 +78,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def points
-    begin
-      points_message = respond_with :message,
-                  text: erb_render("points/description", binding),
-                        reply_markup: {
-                          inline_keyboard: [10, 30, 50, 100, 150, 200].map { | quantity | [{ text: t("buttons.by_points.point_#{quantity}"), 
-                                                                                             callback_data: t("buttons.by_points.point_#{quantity}_callback") }] }
-                        } 
-      session[:by_points_message_id] = points_message['result']['message_id']
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "points err: #{e}")
-    end
+    session[:by_points_message_id] = respond_with(:message, text: erb_render("points/description", binding),
+                                                  reply_markup: { inline_keyboard: Tg::CreateTarifButtonsInteractor.run().result })['result']['message_id']
   end
 
   def choice_category
