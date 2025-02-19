@@ -1,6 +1,4 @@
 class Tg::Category::CreateButtonsWithAllCategoriesInteractor < ActiveInteraction::Base 
-
-  object :user, presence: true
   array :subscribed_categories, presence: true
 
   MAX_COUNT_BUTTON_IN_LINE=2

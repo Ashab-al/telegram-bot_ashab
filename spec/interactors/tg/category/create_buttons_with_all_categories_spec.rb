@@ -10,7 +10,7 @@ RSpec.describe Tg::Category::CreateButtonsWithAllCategoriesInteractor do
     let(:categories) { create_list(:category_for_list, categories_count) }
     let!(:subscriptions) {user.subscriptions.create(category: categories.first)}
 
-    let(:buttons) { described_class.run(subscribed_categories: user.subscriptions.map(&:category), user: user) }
+    let(:buttons) { described_class.run(subscribed_categories: user.subscriptions.map(&:category)) }
 
     it "return correct count buttons" do 
       expect(buttons.result[:inline_keyboard].count).to eq(( categories_count / two ).ceil + one)

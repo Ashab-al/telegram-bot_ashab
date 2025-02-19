@@ -104,7 +104,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_category
     begin
-      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(user: @user, subscribed_categories: @subscribed_categories).result
+      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(subscribed_categories: @subscribed_categories).result
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
@@ -267,32 +267,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     @user = outcome.result[:user]
   end
   
-  def formation_of_category_buttons
-    begin
-      subscriptions = @user.subscriptions.includes(:category)
-      @subscribed_categories = subscriptions.map(&:category)
-      all_category = Category.all
-      
-      buttons = []
-      couple_button = []
-      all_category.each do | category |
-        couple_button << {
-          text: "#{category.name} #{@subscribed_categories.include?(category) ? '🔋' : "\u{1FAAB}"}",
-          callback_data: "#{category.name}"
-        }
-
-        if couple_button.size == 2 || category == all_category.last
-          buttons << couple_button
-          couple_button = []
-        end
-      end
-      buttons << [{text: "Получить вакансии 🔍", callback_data: "get_vacancies_start_1"}]
-      {inline_keyboard: buttons}
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
-    end
-  end
-
   def edit_message_category
     begin
       bot.edit_message_text(text: "Выберите категории \n" \
@@ -301,7 +275,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                   "\u{1FAAB} - означает что категория НЕ выбрана",
                             message_id: session[:category_message_id],
                             chat_id: @user.platform_id,
-                            reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(user: @user, subscribed_categories: @subscribed_categories).result)
+                            reply_markup: Tg::Category::CreateButtonsWithAllCategoriesInteractor.run(subscribed_categories: @subscribed_categories).result)
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "edit_message_category err: #{e}")
