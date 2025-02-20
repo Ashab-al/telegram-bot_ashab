@@ -4,6 +4,7 @@ require_relative '../services/pagination_service'
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   include Pagy::Backend
+  include Tg::Common
 
   IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :session_key]
   
@@ -96,7 +97,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_category
     begin
-      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Buttons::WithAllCategories.new(@subscribed_categories).call
+      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: Buttons::WithAllCategoriesRenderer.new(@subscribed_categories).call
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
@@ -269,7 +270,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                   "\u{1FAAB} - означает что категория НЕ выбрана",
                             message_id: session[:category_message_id],
                             chat_id: @user.platform_id,
-                            reply_markup: Buttons::WithAllCategories.new(@subscribed_categories).call)
+                            reply_markup: Buttons::WithAllCategoriesRenderer.new(@subscribed_categories).call)
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "edit_message_category err: #{e}")
@@ -374,10 +375,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def set_locale
     I18n.locale = :ru
-  end
-
-  def erb_render(action, new_binding)
-    ERB.new(File.read(Rails.root.join "app/views/telegram_webhooks/#{action}.html.erb")).result(new_binding)
   end
 
   def callback_id

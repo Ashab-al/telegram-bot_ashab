@@ -1,4 +1,6 @@
-class Buttons::WithAllCategories
+class Buttons::WithAllCategoriesRenderer
+  include Tg::Common
+
   MAX_COUNT_BUTTON_IN_LINE=2
   
   def initialize(subscribed_categories)
@@ -25,12 +27,7 @@ class Buttons::WithAllCategories
 
     @buttons << [{text: erb_render("button/get_vacancies", binding), callback_data: "get_vacancies_start_1"}]
     
+    
     {inline_keyboard: @buttons}
-  end
-
-  private
-
-  def erb_render(action, new_binding)
-    ERB.new(File.read(Rails.root.join "app/views/telegram_webhooks/#{action}.html.erb")).result(new_binding)
   end
 end
