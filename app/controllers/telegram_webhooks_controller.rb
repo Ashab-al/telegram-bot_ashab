@@ -96,7 +96,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def choice_category
     begin
-      category_send_message = respond_with :message, text: "#{t('choice_category')}", reply_markup: formation_of_category_buttons
+      category_send_message = respond_with :message, text: erb_render('choice_category', binding), reply_markup: formation_of_category_buttons
 
       session[:category_message_id] = category_send_message['result']['message_id']
     rescue => e 
@@ -191,8 +191,23 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
       end
 
-      category = Category.find_by(name: data_callback)
-      checking_subscribed_category(category.id) if category
+      outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(
+          user: user, 
+          category_name: data_callback,
+          subscribed_categories: subscribed_categories
+        )
+      if outcome.errors.present?
+        bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+  
+        raise errors_converter(outcome.errors)
+      end
+
+      answer_callback_query erb_render("callback_query/#{outcome.result[:status]}", binding), show_alert: true
+
+      bot.edit_message_text(
+        text: erb_render('choice_category', binding), message_id: session[:category_message_id], 
+        chat_id: user.platform_id, reply_markup: formation_of_category_buttons
+      ) if outcome.result[:status] 
 
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "callback_query err: #{e.inspect}")
@@ -260,6 +275,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     @user = outcome.result[:user]
   end
+
+  def user
+    @user ||= find_or_create_user_and_send_analytics
+  end
   
   def formation_of_category_buttons
     begin
@@ -286,57 +305,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
     end
   end
-
-  def edit_message_category
-    begin
-      bot.edit_message_text(text: "Выберите категории \n" \
-                                  "(Просто нажмите на интересующие кнопки)\n\n" \
-                                  "🔋 - означает что категория выбрана\n" \
-                                  "\u{1FAAB} - означает что категория НЕ выбрана",
-                            message_id: session[:category_message_id],
-                            chat_id: @user.platform_id,
-                            reply_markup: formation_of_category_buttons)
-
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "edit_message_category err: #{e}")
-    end
-  end
-
-  def checking_subscribed_category(category_id)
-    begin
-      target_category = Category.find(category_id)
-
-      if @subscribed_categories.include?(target_category)
-        unsubscribe_user_from_category(target_category)
-        answer_callback_query "Категория успешно удалена из списка желаемого. 👽✅\n\n" \
-                              "Вакансии по этому направлению не будут приходить", show_alert: true
-      else
-        subscribe_user_to_category(target_category)
-        answer_callback_query "Категория успешно добавлена в список желаемого. 🤖✅\n\n" \
-                              "Скоро бот будет отправлять вакансии по этому направлению. 😉📩", show_alert: true
-      end
-      edit_message_category
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "checking_subscribed_category err: #{e}")
-    end
-  end
-
-  def subscribe_user_to_category(category)
-    begin
-      @user.subscriptions.create(category: category)
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "subscribe_user_to_category err: #{e}")
-    end
-  end
-
-  def unsubscribe_user_from_category(category)
-    begin
-      @user.subscriptions.find_by(category: category)&.destroy
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "unsubscribe_user_from_category err: #{e}")
-    end
-  end
-
 
   def update_point_send_messag(text, data, message_id, button)
     begin

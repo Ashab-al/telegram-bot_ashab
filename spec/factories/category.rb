@@ -10,4 +10,8 @@ FactoryBot.define do
   factory :category_3, class: 'Category' do 
     name { "Маркетолог" }
   end
+
+  factory :category_for_list, class: 'Category' do 
+    sequence(:name) { |n| "Маркетолог #{n}" }
+  end
 end
