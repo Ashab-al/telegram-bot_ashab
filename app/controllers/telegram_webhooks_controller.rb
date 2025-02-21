@@ -192,7 +192,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       end
 
       outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(
-          user: find_or_create_user_and_send_analytics, 
+          user: user, 
           category_name: data_callback,
           subscribed_categories: subscribed_categories
         )
@@ -206,7 +206,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
       bot.edit_message_text(
         text: erb_render('choice_category', binding), message_id: session[:category_message_id], 
-        chat_id: @user.platform_id, reply_markup: formation_of_category_buttons
+        chat_id: user.platform_id, reply_markup: formation_of_category_buttons
       ) if outcome.result[:status] 
 
     rescue => e 
@@ -272,6 +272,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
 
     @user = outcome.result[:user]
+  end
+
+  def user
+    @user ||= find_or_create_user_and_send_analytics
   end
   
   def formation_of_category_buttons
