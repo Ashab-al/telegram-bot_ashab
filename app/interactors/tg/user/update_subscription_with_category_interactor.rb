@@ -1,6 +1,7 @@
 class Tg::User::UpdateSubscriptionWithCategoryInteractor < ActiveInteraction::Base
-  integer :id
+  object :user, presence: true
   string :category_name, presence: true
+  array :subscribed_categories, presence: true
 
   def execute
     user = User.find_by(platform_id: id)
@@ -8,7 +9,7 @@ class Tg::User::UpdateSubscriptionWithCategoryInteractor < ActiveInteraction::Ba
     
     return errors.add(:invalid, :params) unless category || user
     
-    if Tg::Category::FindSubscribeInteractor.run(user: user).result.include?(category)
+    if subscribed_categories.include?(category)
       user.subscriptions.find_by(category: category).destroy      
       return { status: :unsubscribe, result: user } 
     else
