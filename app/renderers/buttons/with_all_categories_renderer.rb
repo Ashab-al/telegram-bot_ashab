@@ -1,5 +1,4 @@
 class Buttons::WithAllCategoriesRenderer
-  # include Tg::Common
 
   MAX_COUNT_BUTTON_IN_LINE = 2
   VACANSIES_START = "get_vacancies_start_"
