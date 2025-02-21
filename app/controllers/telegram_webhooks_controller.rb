@@ -339,11 +339,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def errors_converter(errors)
-    errors.reduce([]) do |errors_list, _error|
+    errors.reduce([]) do |errors_list, error|
       errors_list << {
-        'attribute' => errors.first.attribute,
-        'name' => errors.first.type,
-        'options' => errors.first.options
+        'attribute' => error.first.attribute,
+        'name' => error.first.type,
+        'options' => error.first.options
       }
     end
   end
