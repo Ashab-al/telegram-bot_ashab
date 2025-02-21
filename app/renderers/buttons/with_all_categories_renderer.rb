@@ -6,13 +6,14 @@ class Buttons::WithAllCategoriesRenderer
   
   def initialize(subscribed_categories)
     @subscribed_categories = subscribed_categories
-    @all_category = Category.all
-    @buttons = []
   end
 
   def call
+    all_category = Category.all
+    buttons = []
     two_button = []
-    @all_category.each do | category |
+
+    all_category.each do | category |
       @category = category
 
       two_button << {
@@ -20,15 +21,14 @@ class Buttons::WithAllCategoriesRenderer
         callback_data: "#{@category.name.sub(' ', '_')}"
       }
 
-      if two_button.size == MAX_COUNT_BUTTON_IN_LINE || @category == @all_category.last
-        @buttons << two_button
+      if two_button.size == MAX_COUNT_BUTTON_IN_LINE || @category == all_category.last
+        buttons << two_button
         two_button = []
       end
     end
 
-    @buttons << [{text: Tg::Common.erb_render("button/get_vacancies", binding), callback_data: VACANSIES_START + FIRST.to_s}]
+    buttons << [{text: Tg::Common.erb_render("button/get_vacancies", binding), callback_data: VACANSIES_START + FIRST.to_s}]
     
-    
-    {inline_keyboard: @buttons}
+    {inline_keyboard: buttons}
   end
 end
