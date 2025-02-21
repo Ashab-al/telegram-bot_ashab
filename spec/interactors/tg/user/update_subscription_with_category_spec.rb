@@ -12,7 +12,7 @@ RSpec.describe Tg::User::UpdateSubscriptionWithCategoryInteractor do
     let!(:subscriptions) {user.subscriptions.create(category: category_first)}
 
     describe "create subscription" do 
-      let(:subscribe_to_category) { described_class.run(user: user, category_name: category_second.name, subscribed_categories: user.category) }
+      let(:subscribe_to_category) { described_class.run(id: user.platform_id, category_name: category_second.name) }
 
       it "return correct subscription" do 
        
@@ -21,7 +21,7 @@ RSpec.describe Tg::User::UpdateSubscriptionWithCategoryInteractor do
     end
 
     describe "unsubscribe from category" do 
-      let(:unsubscribe_from_category) { described_class.run(user: user, category_name: category_first.name, subscribed_categories: user.category) }
+      let(:unsubscribe_from_category) { described_class.run(id: user.platform_id, category_name: category_first.name) }
 
       it "return correct destroy subscribe" do 
         expect(unsubscribe_from_category.result[:result].subscriptions.map(&:category)).not_to include(category_first)

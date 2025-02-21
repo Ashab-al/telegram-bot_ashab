@@ -191,19 +191,14 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
       end
 
-      outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(user: @user, category_name: data_callback, subscribed_categories: @subscribed_categories)
+      outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(id: chat["id"], category_name: data_callback)
       if outcome.errors.present?
         bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
   
         raise errors_converter(outcome.errors)
       end
 
-      case outcome.result[:status]
-      when :unsubscribe
-        answer_callback_query erb_render('callback_query/unsubscribe', binding), show_alert: true
-      when :subscribe
-        answer_callback_query erb_render('callback_query/subscribe', binding), show_alert: true
-      end
+      answer_callback_query erb_render("callback_query/#{outcome.result[:status]}", binding), show_alert: true
 
       bot.edit_message_text(
         text: erb_render('choice_category', binding), message_id: session[:category_message_id], 

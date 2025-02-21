@@ -1,23 +1,19 @@
 class Tg::User::UpdateSubscriptionWithCategoryInteractor < ActiveInteraction::Base
-  object :user, presence: true
+  integer :id
   string :category_name, presence: true
-  array :subscribed_categories, presence: true
 
   def execute
+    user = User.find_by(platform_id: id)
     category = Category.find_by(name: category_name)
     
-    return errors.add(:invalid, :category_name) unless category
-
-    if subscribed_categories.include?(category)
-      unsubscribe = Tg::User::UnsubscribeFromCategoryInteractor.run(user: user, category: category)
-      return errors.add(:unsubscribe, unsubscribe.errors) if unsubscribe.errors.present?
-      
-      return { status: :unsubscribe, result: unsubscribe.result } 
+    return errors.add(:invalid, :params) unless category || user
+    
+    if Tg::Category::FindSubscribeInteractor.run(user: user).result.include?(category)
+      user.subscriptions.find_by(category: category).destroy      
+      return { status: :unsubscribe, result: user } 
     else
-      subscribe = Tg::User::SubscribeToCategoryInteractor.run(user: user, category: category)
-      return errors.add(:subscribe, subscribe.errors) if subscribe.errors.present?
-
-      return { status: :subscribe, result: subscribe.result }
+      user.subscriptions.create(category: category)
+      return { status: :subscribe, result: user }
     end
   end
 end
