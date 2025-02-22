@@ -107,7 +107,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         points
         return true
 
-      when /^\d{1,3} поинтов$/
+      when /^\d{1,3} поинт(а|ов)?$/
         begin
           Payment::CreateInteractor.run({
             :chat_id => "#{@user.platform_id}",
