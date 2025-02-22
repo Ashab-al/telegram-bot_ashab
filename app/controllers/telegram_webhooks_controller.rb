@@ -78,8 +78,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def points
-    session[:by_points_message_id] = respond_with(:message, text: erb_render("points/description", binding),
-                                                  reply_markup: { inline_keyboard: Tg::CreateTarifButtonsInteractor.run().result })['result']['message_id']
+    session[:by_points_message_id] = respond_with(:message, text: Tg::Common.erb_render("points/description", binding),
+                                                  reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })['result']['message_id']
   end
 
   def choice_category
