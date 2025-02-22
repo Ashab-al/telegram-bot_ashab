@@ -1,4 +1,18 @@
 ru:
+  points: 
+    zero: "поинтов"
+    one: "поинт"
+    two: "поинта"
+    few: "поинта"
+    many: "поинтов"
+    other: "поинтов"
+  stars: 
+    zero: "звёзд"
+    one: "звезда"
+    two: "звезды"
+    few: "звезды"
+    many: "звёзд"
+    other: "звёзд"
   from: "из"
   get_vacancies: "Получить вакансии"
   callback_query:

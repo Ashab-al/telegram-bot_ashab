@@ -1,1 +1,1 @@
-💎 <%= I18n.t("buttons.by_points", count: @tarif) %> <%= @price %> ⭐️
+💎 <%= @tarif %> <%= I18n.t("points", count: @tarif.to_s.split('').last.to_i) %> | <%= @price %> <%= I18n.t("stars", count: @price.to_s.split('').last.to_i) %> ⭐️
