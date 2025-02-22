@@ -44,6 +44,7 @@ ru:
       categories: "Категории"
     by_points:
       points: "поинтов"
+      other: "%{count} поинтов"
       point_10_callback: "10 поинтов"
       point_30_callback: "30 поинтов"
       point_50_callback: "50 поинтов"

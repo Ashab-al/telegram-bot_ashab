@@ -1,1 +1,1 @@
-💎 <%= @tarif %> <%= I18n.t("buttons.by_points.points") %> <%= Buttons::WithAllTarifsRenderer::TARIFS_PRICES[@tarif] %> ⭐️
+💎 <%= I18n.t("buttons.by_points", count: @tarif) %> <%= @price %> ⭐️
