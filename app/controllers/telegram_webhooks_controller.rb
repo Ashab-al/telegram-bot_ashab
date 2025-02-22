@@ -294,26 +294,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def update_point_send_messag(text, data, message_id, button)
-    begin
-      bot.edit_message_text(text: text,
-                            message_id: message_id,
-                            chat_id: @user.platform_id,
-                            parse_mode: 'HTML',
-                            reply_markup: {inline_keyboard: button})
-      @user.update(data)
-    rescue => e 
-      answer_callback_query "Вакансия успешно отправлена ✅", show_alert: true
-      respond_with :message,
-                  text: text,
-                  parse_mode: 'HTML',
-                  reply_markup: {inline_keyboard: button}
-                  
-      @user.update(data)            
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_point_send_messag Вакансия успешно отправлена ✅ err: #{e}")
-    end
-  end
-
   def send_vacancies(vacancies, start_number_vacancy)
     delay = Tg::Vacancy::VacanciesForTheWeekInteractor::DELAY / Pagy::DEFAULT[:limit]
     
