@@ -78,20 +78,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def points
-    begin
-      points_message = respond_with :message,
-                  text: "#{t('user.name', name: from['first_name'])}\n\n" \
-                        "#{t('user.balance.point', point: @user.point)}\n" \
-                        "#{t('user.balance.bonus', bonus: @user.bonus)}\n\n" \
-                        "#{t('user.balance.recommendation')}",
-                        reply_markup: {
-                          inline_keyboard: [10, 30, 50, 100, 150, 200].map { | quantity | [{ text: t("buttons.by_points.point_#{quantity}"), 
-                                                                                             callback_data: t("buttons.by_points.point_#{quantity}_callback") }] }
-                        } 
-      session[:by_points_message_id] = points_message['result']['message_id']
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "points err: #{e}")
-    end
+    session[:by_points_message_id] = respond_with(:message, text: Tg::Common.erb_render("points/description", binding),
+                                                  reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })['result']['message_id']
   end
 
   def choice_category
@@ -119,7 +107,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         points
         return true
 
-      when /^\d{1,3} поинтов$/
+      when /^\d{1,3} поинт(а|ов)?$/
         begin
           Payment::CreateInteractor.run({
             :chat_id => "#{@user.platform_id}",
@@ -303,26 +291,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       {inline_keyboard: buttons}
     rescue => e 
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
-    end
-  end
-
-  def update_point_send_messag(text, data, message_id, button)
-    begin
-      bot.edit_message_text(text: text,
-                            message_id: message_id,
-                            chat_id: @user.platform_id,
-                            parse_mode: 'HTML',
-                            reply_markup: {inline_keyboard: button})
-      @user.update(data)
-    rescue => e 
-      answer_callback_query "Вакансия успешно отправлена ✅", show_alert: true
-      respond_with :message,
-                  text: text,
-                  parse_mode: 'HTML',
-                  reply_markup: {inline_keyboard: button}
-                  
-      @user.update(data)            
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "update_point_send_messag Вакансия успешно отправлена ✅ err: #{e}")
     end
   end
 
