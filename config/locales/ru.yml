@@ -1,4 +1,10 @@
 ru:
+  payment: 
+    for_admin:
+      success: "Оплата прошла успешно"
+      client: "Клиент"
+      points: "Поинты"
+      stars: "Звезд заплатили"
   points: 
     zero: "%{count} поинтов"
     one: "%{count} поинт"
