@@ -108,19 +108,22 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
 
       when /^\d{1,3} поинт(а|ов)?$/
-        begin
-          Payment::CreateInteractor.run({
-            :chat_id => "#{@user.platform_id}",
-            :bot => bot,
-            :tarif => data_callback,
-            :title => t('bot.title')
-          })
-          return true
-        rescue => e 
-          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Payment::CreateInteractor err: #{e}")
-        end
-        
+        @tarif = data_callback.scan(/\d+/).first.to_i
 
+        bot.send_invoice(
+          chat_id: user.platform_id,
+          title: Tg::Common.erb_render('payment/title', binding),
+          description: Tg::Common.erb_render('points/tarif_callback', binding),
+          payload: @tarif,
+          currency: 'XTR',
+          prices: [
+            Telegram::Bot::Types::LabeledPrice.new(
+              label: Tg::Common.erb_render('points/tarif_callback', binding), 
+              amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[@tarif]
+            )
+          ]
+        )
+        return true  
       when /^mid_\d+_bdid_\d+/
         begin
           data_scan = data_callback.scan(/\d+/)
