@@ -1,4 +1,5 @@
 class Buttons::WithAllTarifsRenderer
+  CURRENCY = 'XTR'
   TARIFS_PRICES = {
     10 => 31, 
     30 => 85, 
@@ -8,6 +9,7 @@ class Buttons::WithAllTarifsRenderer
     200 => 450
   }
 
+  
   def call
     TARIFS_PRICES.map do | tarif, price | 
       @tarif = tarif

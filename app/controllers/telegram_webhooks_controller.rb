@@ -108,19 +108,22 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         return true
 
       when /^\d{1,3} поинт(а|ов)?$/
-        begin
-          Payment::CreateInteractor.run({
-            :chat_id => "#{@user.platform_id}",
-            :bot => bot,
-            :tarif => data_callback,
-            :title => t('bot.title')
-          })
-          return true
-        rescue => e 
-          bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Payment::CreateInteractor err: #{e}")
-        end
-        
+        @tarif = data_callback.scan(/\d+/).first.to_i
 
+        bot.send_invoice(
+          chat_id: user.platform_id,
+          title: Tg::Common.erb_render('payment/title', binding),
+          description: Tg::Common.erb_render('points/tarif_callback', binding),
+          payload: @tarif,
+          currency: Buttons::WithAllTarifsRenderer::CURRENCY,
+          prices: [
+            Telegram::Bot::Types::LabeledPrice.new(
+              label: Tg::Common.erb_render('points/tarif_callback', binding), 
+              amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[@tarif]
+            )
+          ]
+        )
+        return true  
       when /^mid_\d+_bdid_\d+/
         begin
           data_scan = data_callback.scan(/\d+/)
@@ -202,30 +205,33 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def pre_checkout_query(data)
-    begin
-      bot.answer_pre_checkout_query(
-        pre_checkout_query_id: data["id"],
-        ok: true
+  def pre_checkout_query(data)  
+    bot.answer_pre_checkout_query(
+      pre_checkout_query_id: data["id"],
+      ok: true
+    )
+
+    @points = data["invoice_payload"].to_i
+
+    update_points = Tg::User::UpdatePointsInteractor.run(user: user, points: @points, stars: data["total_amount"].to_i)    
+    
+    if update_points.errors.present?
+      bot.send_message(
+        text: Tg::Common.erb_render('pre_checkout_query/fail_payment', binding), 
+        message_id: data[:message_id],
+        chat_id: user.platform_id  
       )
-
-      @user.update({:point => @user.point + data["invoice_payload"].to_i})
-            
-      bot.send_message text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
-                              "Вам зачислено #{data["invoice_payload"]} поинтов. 💳\n\n",
-                          message_id: data[:message_id],
-                          chat_id: @user.platform_id  
       
-
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Оплата прошла успешно:\n\n" \
-                                                                                "Клиент: #{@user.name}\n" \
-                                                                                "Поинты: #{data["invoice_payload"]}\n" \
-                                                                                "Звезд заплатили: #{data["total_amount"]}"
-                                                                              )                     
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(update_points.errors)}, #{payload}")
       
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "pre_checkout_query err: #{e.inspect}")
+      raise errors_converter(update_points.errors)
     end
+
+    bot.send_message(
+      text: Tg::Common.erb_render('pre_checkout_query/success_payment', binding), 
+      message_id: data[:message_id],
+      chat_id: user.platform_id  
+    )
   end
 
   def message(_message)
@@ -253,7 +259,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def find_or_create_user_and_send_analytics
-    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: chat)
+    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: from)
 
     if outcome.errors.present?
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
