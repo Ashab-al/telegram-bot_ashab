@@ -1,6 +1,6 @@
 class Buttons::WithAllTarifsRenderer
   TARIFS_PRICES = {
-    10 => 31, 
+    10 => 1, 
     30 => 85, 
     50 => 135, 
     100 => 255, 

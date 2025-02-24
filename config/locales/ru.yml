@@ -5,6 +5,11 @@ ru:
       client: "Клиент"
       points: "Поинты"
       stars: "Звезд заплатили"
+    for_user:
+      congratulations: "Поздравляю"
+      payment_was_successful: "Платеж успешно прошёл"
+      enrolled: "Вам зачислено"
+      
   points: 
     zero: "%{count} поинтов"
     one: "%{count} поинт"

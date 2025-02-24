@@ -205,30 +205,28 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def pre_checkout_query(data)
-    begin
-      bot.answer_pre_checkout_query(
-        pre_checkout_query_id: data["id"],
-        ok: true
-      )
+  def pre_checkout_query(data)  
+    bot.answer_pre_checkout_query(
+      pre_checkout_query_id: data["id"],
+      ok: true
+    )
 
-      @user.update({:point => @user.point + data["invoice_payload"].to_i})
-            
-      bot.send_message text: "Поздравляю! Платеж успешно прошёл! 🔋🎉\n" \
-                              "Вам зачислено #{data["invoice_payload"]} поинтов. 💳\n\n",
-                          message_id: data[:message_id],
-                          chat_id: @user.platform_id  
-      
+    @points = data["invoice_payload"].to_i
 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Оплата прошла успешно:\n\n" \
-                                                                                "Клиент: #{@user.name}\n" \
-                                                                                "Поинты: #{data["invoice_payload"]}\n" \
-                                                                                "Звезд заплатили: #{data["total_amount"]}"
-                                                                              )                     
-      
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "pre_checkout_query err: #{e.inspect}")
+    update_points = Tg::User::UpdatePointsInteractor.run(user: user, points: @points, stars: data["total_amount"].to_i)    
+    
+    if update_points.errors.present?
+      p update_points.errors
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+
+      raise errors_converter(outcome.errors)
     end
+    
+    bot.send_message(
+      text: Tg::Common.erb_render('pre_checkout_query/success_payment', binding), 
+      message_id: data[:message_id],
+      chat_id: @user.platform_id  
+    )
   end
 
   def message(_message)
@@ -256,7 +254,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def find_or_create_user_and_send_analytics
-    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: chat)
+    outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: from)
 
     if outcome.errors.present?
       bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
