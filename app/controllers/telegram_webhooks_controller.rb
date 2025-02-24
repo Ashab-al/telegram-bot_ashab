@@ -115,7 +115,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
           title: Tg::Common.erb_render('payment/title', binding),
           description: Tg::Common.erb_render('points/tarif_callback', binding),
           payload: @tarif,
-          currency: 'XTR',
+          currency: Buttons::WithAllTarifsRenderer::CURRENCY,
           prices: [
             Telegram::Bot::Types::LabeledPrice.new(
               label: Tg::Common.erb_render('points/tarif_callback', binding), 
@@ -216,16 +216,21 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     update_points = Tg::User::UpdatePointsInteractor.run(user: user, points: @points, stars: data["total_amount"].to_i)    
     
     if update_points.errors.present?
-      p update_points.errors
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
-
-      raise errors_converter(outcome.errors)
+      bot.send_message(
+        text: Tg::Common.erb_render('pre_checkout_query/fail_payment', binding), 
+        message_id: data[:message_id],
+        chat_id: user.platform_id  
+      )
+      
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(update_points.errors)}, #{payload}")
+      
+      raise errors_converter(update_points.errors)
     end
-    
+
     bot.send_message(
       text: Tg::Common.erb_render('pre_checkout_query/success_payment', binding), 
       message_id: data[:message_id],
-      chat_id: @user.platform_id  
+      chat_id: user.platform_id  
     )
   end
 

@@ -9,7 +9,10 @@ ru:
       congratulations: "Поздравляю"
       payment_was_successful: "Платеж успешно прошёл"
       enrolled: "Вам зачислено"
-      
+      fail:
+        wrong: "Что-то пошло не так"
+        write: "Напишите администратору"
+        admin: "AshabAl" 
   points: 
     zero: "%{count} поинтов"
     one: "%{count} поинт"
