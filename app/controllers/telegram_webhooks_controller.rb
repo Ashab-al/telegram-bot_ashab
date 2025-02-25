@@ -6,6 +6,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Pagy::Backend
 
   IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :session_key]
+
+  CHAT_TYPE = "private"
   
   before_action :set_locale
   before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
@@ -77,66 +79,22 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def points
-    session[:by_points_message_id] = respond_with(:message, text: Tg::Common.erb_render("points/description", binding),
-                                                  reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })['result']['message_id']
-  end
-
-  def choice_category
-    begin
-      category_send_message = respond_with :message, text: Tg::Common.erb_render('choice_category', binding), reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
-
-      session[:category_message_id] = category_send_message['result']['message_id']
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "choice_category err: #{e}")
-    end
-  end
-  
 
   def callback_query(data_callback)
-    return false unless chat["type"] == "private"
+    return false unless chat["type"] == CHAT_TYPE
       
     case data_callback
     when t('callback_query.choice_categories')
       choice_category
       return true
-    
     when t('callback_query.points')
       points
       return true
-
     when Buttons::WithAllTarifsRenderer::POINTS_REGEX
-      @tarif = data_callback.scan(/\d+/).first.to_i
-
-      bot.send_invoice(
-        chat_id: user.platform_id,
-        title: Tg::Common.erb_render('payment/title', binding),
-        description: Tg::Common.erb_render('points/tarif_callback', binding),
-        payload: @tarif,
-        currency: Buttons::WithAllTarifsRenderer::CURRENCY,
-        prices: [
-          Telegram::Bot::Types::LabeledPrice.new(
-            label: Tg::Common.erb_render('points/tarif_callback', binding), 
-            amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[@tarif]
-          )
-        ]
-      )
+      choice_tarif data_callback.scan(/\d+/).first.to_i
       return true  
     when Tg::OpenVacancyInteractor::OPEN_VACANCY_REGEX
-      data_scan = data_callback.scan(/\d+/)
-      @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
-
-      answer_callback_query Tg::Common.erb_render(@open_vacancy[:path_view], binding), show_alert: true if @open_vacancy[:status] == :warning
-      bot.edit_message_text(text: Tg::Common.erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
-                            reply_markup: {
-                              inline_keyboard: [
-                                [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
-                                  callback_data: "#{I18n.t('buttons.points')}" }],
-                                [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-                                  callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
-                              ]
-                            }) if @open_vacancy[:status] == :open_vacancy
-
+      view_vacancy data_callback.scan(/\d+/)
       return true
     when Tg::SpamVacancyInteractor::SPAM_VACANCY_REGEX
       @outcome = Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result
@@ -241,6 +199,50 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   private
+
+  def view_vacancy(data_scan)
+    @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
+
+    answer_callback_query Tg::Common.erb_render(@open_vacancy[:path_view], binding), show_alert: true if @open_vacancy[:status] == :warning
+    bot.edit_message_text(
+      text: Tg::Common.erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
+            callback_data: "#{I18n.t('buttons.points')}" }],
+          [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+            callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
+        ]
+      }
+    ) if @open_vacancy[:status] == :open_vacancy
+  end
+
+  def choice_tarif(tarif)
+    @tarif = tarif
+    bot.send_invoice(
+        chat_id: user.platform_id,
+        title: Tg::Common.erb_render('payment/title', binding),
+        description: Tg::Common.erb_render('points/tarif_callback', binding),
+        payload: @tarif,
+        currency: Buttons::WithAllTarifsRenderer::CURRENCY,
+        prices: [
+          Telegram::Bot::Types::LabeledPrice.new(
+            label: Tg::Common.erb_render('points/tarif_callback', binding), 
+            amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[@tarif]
+          )
+        ]
+      )
+  end
+
+  def choice_category
+    category_send_message = respond_with :message, text: Tg::Common.erb_render('choice_category', binding), reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
+
+    session[:category_message_id] = category_send_message['result']['message_id']
+  end
+
+  def points
+    respond_with(:message, text: Tg::Common.erb_render("points/description", binding), reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })['result']['message_id']
+  end
 
   def subscribed_categories
     @subscribed_categories ||= Tg::Category::FindSubscribeInteractor.run(user: @user).result
