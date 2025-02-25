@@ -79,26 +79,20 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     case data_callback
     when t('callback_query.choice_categories')
       choice_category
-      return true
     when t('callback_query.points')
       view_tarifs
-      return true
     when Buttons::WithAllTarifsRenderer::POINTS_REGEX
-      choice_tarif data_callback.scan(/\d+/).first.to_i
-      return true  
+      send_invoice data_callback.scan(/\d+/).first.to_i
     when Tg::OpenVacancyInteractor::OPEN_VACANCY_REGEX
       view_vacancy data_callback.scan(/\d+/)
-      return true
     when Tg::SpamVacancyInteractor::SPAM_VACANCY_REGEX
       @outcome = Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result
       answer_callback_query Tg::Common.erb_render("callback_query/spam_vacancy", binding), show_alert: true
-      return true
     when Buttons::WithAllCategoriesRenderer::PAGINATION_START_REGEX
-      pagination_start data_callback.scan(/\d+/).first
-      return true
+      start_pagination_from data_callback.scan(/\d+/).first
+    else
+      return subscribe_or_unsubscribe_and_edit_message data_callback
     end
-
-    subscribe_or_unsubscribe_and_edit_message data_callback
   end
 
   def pre_checkout_query(data)  
@@ -168,7 +162,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     ) if outcome.result[:status] 
   end
 
-  def pagination_start(page)
+  def start_pagination_from(page)
     vacancies = Tg::Vacancy::VacanciesForTheWeekInteractor.run(user: user).result
 
     case vacancies[:status]
@@ -212,7 +206,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     ) if @open_vacancy[:status] == :open_vacancy
   end
 
-  def choice_tarif(tarif)
+  def send_invoice(tarif)
     @tarif = tarif
     bot.send_invoice(
         chat_id: user.platform_id,
