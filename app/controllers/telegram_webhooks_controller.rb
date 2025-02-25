@@ -60,7 +60,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       respond_with :message, text: Tg::Common.erb_render("menu/instructions", binding), parse_mode: 'HTML'
       menu
     when t('buttons.menu.points')
-      points
+      view_tarifs
     else
       @outcome = Tg::TotalVacanciesInteractor.run().result
       respond_with :message, text: Tg::Common.erb_render("menu/vacancies_info", binding), parse_mode: 'HTML'
@@ -81,7 +81,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       choice_category
       return true
     when t('callback_query.points')
-      points
+      view_tarifs
       return true
     when Buttons::WithAllTarifsRenderer::POINTS_REGEX
       choice_tarif data_callback.scan(/\d+/).first.to_i
@@ -235,7 +235,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     session[:category_message_id] = category_send_message['result']['message_id']
   end
 
-  def points
+  def view_tarifs
     respond_with(:message, text: Tg::Common.erb_render("points/description", binding), reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })['result']['message_id']
   end
 
