@@ -5,7 +5,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   include Pagy::Backend
 
-  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:choice_category, :message, :session_key]
+  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:send_category, :message, :session_key]
 
   CHAT_TYPE = "private"
   
@@ -51,7 +51,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
     case value
     when t('buttons.menu.categories')
-      choice_category
+      send_category
     when t('buttons.menu.advertisement')
       @outcome = Tg::AdvertisementInteractor.run().result
       respond_with :message, text: Tg::Common.erb_render("menu/advertisement", binding), parse_mode: 'HTML'
@@ -78,7 +78,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       
     case data_callback
     when t('callback_query.choice_categories')
-      choice_category
+      send_category
     when t('callback_query.points')
       view_tarifs
     when Buttons::WithAllTarifsRenderer::POINTS_REGEX
@@ -223,7 +223,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       )
   end
 
-  def choice_category
+  def send_category
     category_send_message = respond_with :message, text: Tg::Common.erb_render('choice_category', binding), reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
 
     session[:category_message_id] = category_send_message['result']['message_id']
