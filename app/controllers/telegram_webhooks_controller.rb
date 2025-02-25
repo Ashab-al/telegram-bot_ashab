@@ -122,42 +122,35 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         ]
       )
       return true  
-    when /^mid_\d+_bdid_\d+/
-      begin
-        data_scan = data_callback.scan(/\d+/)
-        @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
+    when Tg::OpenVacancyInteractor::OPEN_VACANCY_REGEX
+      data_scan = data_callback.scan(/\d+/)
+      @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
 
-        answer_callback_query Tg::Common.erb_render(@open_vacancy[:path_view], binding), show_alert: true if @open_vacancy[:status] == :warning
-        bot.edit_message_text(text: Tg::Common.erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
-                              reply_markup: {
-                                inline_keyboard: [
-                                  [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
-                                    callback_data: "#{I18n.t('buttons.points')}" }],
-                                  [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-                                    callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
-                                ]
-                              }) if @open_vacancy[:status] == :open_vacancy
+      answer_callback_query Tg::Common.erb_render(@open_vacancy[:path_view], binding), show_alert: true if @open_vacancy[:status] == :warning
+      bot.edit_message_text(text: Tg::Common.erb_render(@open_vacancy[:path_view], binding), message_id: data_scan[0], chat_id: @user.platform_id, parse_mode: 'HTML', 
+                            reply_markup: {
+                              inline_keyboard: [
+                                [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{@open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
+                                  callback_data: "#{I18n.t('buttons.points')}" }],
+                                [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
+                                  callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
+                              ]
+                            }) if @open_vacancy[:status] == :open_vacancy
 
-        return true
-      rescue => e 
-        bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "Tg::OpenVacancyInteractor err: #{e}")
-      end
-    when /^spam_mid_\d+_bdid_\d+/
+      return true
+    when Tg::SpamVacancyInteractor::SPAM_VACANCY_REGEX
       @outcome = Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result
       answer_callback_query Tg::Common.erb_render("callback_query/spam_vacancy", binding), show_alert: true
       return true
 
-    when /^#{Buttons::WithAllCategoriesRenderer::VACANSIES_START}\d+/
+    when Buttons::WithAllCategoriesRenderer::PAGINATION_START_REGEX
       page = data_callback.scan(/\d+/).first
       
       vacancies = Tg::Vacancy::VacanciesForTheWeekInteractor.run(user: @user).result
 
       case vacancies[:status]
-      when :subscribed_categories_empty
-        answer_callback_query Tg::Common.erb_render("pagination/subscribed_categories_empty", binding), show_alert: true
-        return
-      when :vacancy_list_empty
-        answer_callback_query Tg::Common.erb_render("pagination/vacancy_list_empty", binding), show_alert: true
+      when :subscribed_categories_empty || :vacancy_list_empty
+        answer_callback_query Tg::Common.erb_render("pagination/#{vacancies[:status]}", binding), show_alert: true
         return
       when :ok
         @pagy, @records = pagy(vacancies[:vacancies], page: page, params: {})

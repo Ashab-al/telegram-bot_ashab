@@ -1,7 +1,9 @@
 class Tg::SpamVacancyInteractor < ActiveInteraction::Base
   integer :id, presence: true
   
-  COMPLAINT_COUNTER=2
+  SPAM_VACANCY_REGEX = Regexp.new('^spam_mid_\d+_bdid_\d+')
+
+  COMPLAINT_COUNTER = 2
 
   def execute
     vacancy = Vacancy.find_by(id: id)
