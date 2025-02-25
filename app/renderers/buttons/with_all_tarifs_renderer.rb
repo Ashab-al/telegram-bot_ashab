@@ -1,4 +1,5 @@
 class Buttons::WithAllTarifsRenderer
+  POINTS_REGEX = Regexp.new(I18n.t('points').values.uniq.map { |v| "(#{v})" }.join('|').gsub('%{count}', "\\d+"))
   CURRENCY = 'XTR'
   TARIFS_PRICES = {
     10 => 31, 

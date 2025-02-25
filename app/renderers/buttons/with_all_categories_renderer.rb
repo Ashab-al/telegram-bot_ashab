@@ -2,6 +2,9 @@ class Buttons::WithAllCategoriesRenderer
 
   MAX_COUNT_BUTTON_IN_LINE = 2
   VACANSIES_START = "get_vacancies_start_"
+
+  PAGINATION_START_REGEX = Regexp.new("^#{VACANSIES_START}\\d+")
+
   FIRST = 1
   
   def initialize(subscribed_categories)

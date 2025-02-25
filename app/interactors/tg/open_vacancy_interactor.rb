@@ -2,9 +2,11 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
   object :user, presence: true
   integer :id, presence: true
 
-  REDUCE_BALANCE=1
-  ZERO_BALANCE=0
-  POINTS_EDGE=5
+  OPEN_VACANCY_REGEX = Regexp.new('^mid_\d+_bdid_\d+') 
+
+  REDUCE_BALANCE = 1
+  ZERO_BALANCE = 0
+  POINTS_EDGE = 5
 
   def execute
     vacancy = Vacancy.find_by(id: id)
