@@ -37,20 +37,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   
 
   def start!(*)
-    begin
-      respond_with :message, text: Tg::Common.erb_render("menu/instructions", binding), parse_mode: 'HTML'
-      menu
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "start err: #{e}")
-    end
+    respond_with :message, text: Tg::Common.erb_render("menu/instructions", binding), parse_mode: 'HTML'
+    menu
   end
 
   def main_menu!
-    begin
-      menu
-    rescue => e
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "main_menu err: #{e}")
-    end
+    menu
   end
 
   def menu(value = nil, *)
@@ -100,55 +92,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       @outcome = Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result
       answer_callback_query Tg::Common.erb_render("callback_query/spam_vacancy", binding), show_alert: true
       return true
-
     when Buttons::WithAllCategoriesRenderer::PAGINATION_START_REGEX
-      page = data_callback.scan(/\d+/).first
-      
-      vacancies = Tg::Vacancy::VacanciesForTheWeekInteractor.run(user: @user).result
-
-      case vacancies[:status]
-      when :subscribed_categories_empty || :vacancy_list_empty
-        answer_callback_query Tg::Common.erb_render("pagination/#{vacancies[:status]}", binding), show_alert: true
-        return
-      when :ok
-        @pagy, @records = pagy(vacancies[:vacancies], page: page, params: {})
-
-        send_vacancies(@records, @pagy.from)
-
-        respond_with :message,
-          text: Tg::Common.erb_render("pagination/sended_vacancies", binding), 
-          parse_mode: 'HTML',
-          reply_markup: {
-          inline_keyboard: [
-          [{ text: Tg::Common.erb_render("pagination/get_more_vacancies", binding), 
-            callback_data: "#{Buttons::WithAllCategoriesRenderer::VACANSIES_START}#{@pagy.next || @pagy.last}" }],
-          [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
-          ]
-        }
-      
-        answer_callback_query Tg::Common.erb_render("pagination/sended_vacancies", binding), show_alert: true if @pagy.next.nil?
-      end
+      pagination_start data_callback.scan(/\d+/).first
       return true
     end
 
-    outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(
-        user: user, 
-        category_name: data_callback,
-        subscribed_categories: subscribed_categories
-      )
-    if outcome.errors.present?
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
-
-      raise errors_converter(outcome.errors)
-    end
-
-    answer_callback_query Tg::Common.erb_render("callback_query/#{outcome.result[:status]}", binding), show_alert: true
-
-    bot.edit_message_text(
-      text: Tg::Common.erb_render('choice_category', binding), message_id: session[:category_message_id], 
-      chat_id: user.platform_id, reply_markup: formation_of_category_buttons
-    ) if outcome.result[:status] 
-
+    subscribe_or_unsubscribe_and_edit_message data_callback
   end
 
   def pre_checkout_query(data)  
@@ -181,11 +130,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def message(_message)
-    begin
-      menu
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "message err: #{e}")
-    end
+    menu
   end
 
   def my_chat_member(data)
@@ -199,6 +144,55 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   private
+
+  def subscribe_or_unsubscribe_and_edit_message(data_callback)
+    outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(
+        user: user, 
+        category_name: data_callback,
+        subscribed_categories: subscribed_categories
+      )
+    if outcome.errors.present?
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+
+      raise errors_converter(outcome.errors)
+    end
+
+    answer_callback_query Tg::Common.erb_render("callback_query/#{outcome.result[:status]}", binding), show_alert: true
+
+    bot.edit_message_text(
+      text: Tg::Common.erb_render('choice_category', binding), 
+      message_id: session[:category_message_id], 
+      chat_id: user.platform_id, 
+      reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
+    ) if outcome.result[:status] 
+  end
+
+  def pagination_start(page)
+    vacancies = Tg::Vacancy::VacanciesForTheWeekInteractor.run(user: user).result
+
+    case vacancies[:status]
+    when :subscribed_categories_empty || :vacancy_list_empty
+      answer_callback_query Tg::Common.erb_render("pagination/#{vacancies[:status]}", binding), show_alert: true
+      return
+    when :ok
+      @pagy, @records = pagy(vacancies[:vacancies], page: page, params: {})
+
+      send_vacancies(@records, @pagy.from)
+
+      respond_with :message,
+        text: Tg::Common.erb_render("pagination/sended_vacancies", binding), 
+        parse_mode: 'HTML',
+        reply_markup: {
+        inline_keyboard: [
+        [{ text: Tg::Common.erb_render("pagination/get_more_vacancies", binding), 
+          callback_data: "#{Buttons::WithAllCategoriesRenderer::VACANSIES_START}#{@pagy.next || @pagy.last}" }],
+        [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
+        ]
+      }
+    
+      answer_callback_query Tg::Common.erb_render("pagination/sended_vacancies", binding), show_alert: true if @pagy.next.nil?
+    end
+  end
 
   def view_vacancy(data_scan)
     @open_vacancy = Tg::OpenVacancyInteractor.run(user: @user, id: data_scan[1]).result
@@ -245,7 +239,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   end
 
   def subscribed_categories
-    @subscribed_categories ||= Tg::Category::FindSubscribeInteractor.run(user: @user).result
+    @subscribed_categories = Tg::Category::FindSubscribeInteractor.run(user: @user).result
   end
 
   def find_or_create_user_and_send_analytics
@@ -264,31 +258,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     @user ||= find_or_create_user_and_send_analytics
   end
   
-  def formation_of_category_buttons
-    begin
-      subscriptions = @user.subscriptions.includes(:category)
-      @subscribed_categories = subscriptions.map(&:category)
-      all_category = Category.all
-      
-      buttons = []
-      couple_button = []
-      all_category.each do | category |
-        couple_button << {
-          text: "#{category.name} #{@subscribed_categories.include?(category) ? '🔋' : "\u{1FAAB}"}",
-          callback_data: "#{category.name}"
-        }
-
-        if couple_button.size == 2 || category == all_category.last
-          buttons << couple_button
-          couple_button = []
-        end
-      end
-      buttons << [{text: "Получить вакансии 🔍", callback_data: "get_vacancies_start_1"}]
-      {inline_keyboard: buttons}
-    rescue => e 
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "formation_of_category_buttons err: #{e}")
-    end
-  end
 
   def send_vacancies(vacancies, start_number_vacancy)
     delay = Tg::Vacancy::VacanciesForTheWeekInteractor::DELAY / Pagy::DEFAULT[:limit]
