@@ -12,7 +12,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   before_action :set_locale
   before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
   before_action :subscribed_categories, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
-  
+
+  rescue_from Exception, with: :send_error_in_admin_group
   # bin/rake telegram:bot:poller   запуск бота
 
   # chat - выдает такие данные
@@ -305,5 +306,12 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
 
   def callback_id
     Telegram.bot.get_updates["result"].first["callback_query"]["id"]
+  end
+
+  def send_error_in_admin_group(exception)
+    bot.send_message(
+      chat_id: Rails.application.secrets.errors_chat_id,
+      text: exception.message.inspect
+    )
   end
 end
