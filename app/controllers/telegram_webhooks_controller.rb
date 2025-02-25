@@ -97,11 +97,11 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     return false unless chat["type"] == "private"
       
     case data_callback
-    when 'Выбрать категории'
+    when t('callback_query.choice_categories')
       choice_category
       return true
     
-    when 'Поинты'
+    when t('callback_query.points')
       points
       return true
 
