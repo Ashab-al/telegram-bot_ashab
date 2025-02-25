@@ -5,11 +5,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   include Pagy::Backend
 
-  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:send_category, :message, :session_key]
+  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:send_category, :message]
 
   CHAT_TYPE = "private"
   
-  before_action :set_locale
   before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
   before_action :subscribed_categories, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
 
@@ -280,9 +279,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def session_key
-    "#{bot.username}:#{from ? "from:#{from['id']}" : "chat:#{chat['id']}"}"
-  end
 
   def errors_converter(errors)
     errors.reduce([]) do |errors_list, error| 
@@ -294,13 +290,6 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     end
   end
 
-  def set_locale
-    I18n.locale = :ru
-  end
-
-  def callback_id
-    Telegram.bot.get_updates["result"].first["callback_query"]["id"]
-  end
 
   def send_error_in_admin_group(exception)
     bot.send_message(
