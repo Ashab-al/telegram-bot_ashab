@@ -1,6 +1,6 @@
 <%= I18n.t('user.new_user') %>
-<%= I18n.t('user.username') %>: <%= @user.name %>
-<%= I18n.t('user.tg_username') %>: <%= @user.username %>
-<%= I18n.t('user.all_users_count') %>: <%= @analytics[:users_count] %>
-<%= I18n.t('user.users_status_works') %>: <%= @analytics[:works_users] %>
-<%= I18n.t('user.users_status_bot_blocked') %>: <%= @analytics[:bot_blocked_users] %>
+<%= I18n.t('user.username') %>: <%= user.name %>
+<%= I18n.t('user.tg_username') %>: <%= user.username %>
+<%= I18n.t('user.all_users_count') %>: <%= analytics[:users_count] %>
+<%= I18n.t('user.users_status_works') %>: <%= analytics[:works_users] %>
+<%= I18n.t('user.users_status_bot_blocked') %>: <%= analytics[:bot_blocked_users] %>

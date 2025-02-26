@@ -13,9 +13,7 @@ class Buttons::WithAllTarifsRenderer
   
   def call
     TARIFS_PRICES.map do | tarif, price | 
-      @tarif = tarif
-      @price = price
-      [{ text: Tg::Common.erb_render("points/tarif_name", binding), callback_data: Tg::Common.erb_render("points/tarif_callback", binding) }]
+      [{ text: Tg::Common.erb_render("points/tarif_name", { tarif: tarif, price: price }), callback_data: Tg::Common.erb_render("points/tarif_callback", { tarif: tarif }) }]
     end
   end
 end

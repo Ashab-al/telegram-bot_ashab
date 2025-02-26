@@ -1,7 +1,7 @@
 class Tg::Vacancy::VacanciesForTheWeekInteractor < ActiveInteraction::Base
   object :user, presence: true
 
-  QUANTITY_DAYS = 7
+  QUANTITY_DAYS = 300
   DELAY = 3.0
 
   def execute
