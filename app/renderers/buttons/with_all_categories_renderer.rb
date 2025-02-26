@@ -29,7 +29,7 @@ class Buttons::WithAllCategoriesRenderer
       end
     end
 
-    buttons << [{text: Tg::Common.erb_render("button/get_vacancies", {}), callback_data: VACANSIES_START + FIRST.to_s}]
+    buttons << [{text: Tg::Common.erb_render("button/get_vacancies"), callback_data: VACANSIES_START + FIRST.to_s}]
     
     {inline_keyboard: buttons}
   end
