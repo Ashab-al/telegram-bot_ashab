@@ -32,13 +32,13 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 gem "telegram-bot", "~> 0.15.5"
 gem 'rest-client'
 gem 'yookassa'
-gem 'webpacker'
-gem "tailwindcss-rails", "~> 2.1"
+# gem 'webpacker'
+# gem "tailwindcss-rails", "~> 2.1"
 gem 'nokogiri', "1.12.5"
-gem 'tomo'
+# gem 'tomo'
 gem 'sidekiq'
-gem "graphql"
-gem "graphiql-rails", group: :development
+# gem "graphql"
+# gem "graphiql-rails", group: :development
 gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
 gem 'i18n'
