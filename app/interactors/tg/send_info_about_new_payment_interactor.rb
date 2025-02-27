@@ -4,13 +4,9 @@ class Tg::SendInfoAboutNewPaymentInteractor < ActiveInteraction::Base
   integer :stars, presence: true
   
   def execute
-    # Переменные экземпляра используются чтобы они могли использоваться во вью (для отправки сообщения через бота)
-    @name = name
-    @points = points
-    @stars = stars
     Telegram.bot.send_message(
       chat_id: Rails.application.secrets.errors_chat_id, 
-      text: Tg::Common.erb_render('payment_info_for_admin', binding)
+      text: Tg::Common.erb_render('payment_info_for_admin', { name: name, points: points, stars: stars })
     )   
   end
 end

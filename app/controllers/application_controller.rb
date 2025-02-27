@@ -1,6 +1,5 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :null_session
-  before_action :set_locale
   
   private 
 
@@ -12,9 +11,5 @@ class ApplicationController < ActionController::Base
         "options" => errors.first.options
       } 
     end
-  end
-
-  def set_locale
-    I18n.locale = :en
   end
 end
