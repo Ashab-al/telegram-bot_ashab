@@ -35,10 +35,7 @@ gem 'yookassa'
 # gem 'webpacker'
 # gem "tailwindcss-rails", "~> 2.1"
 gem 'nokogiri', "1.12.5"
-# gem 'tomo'
 gem 'sidekiq'
-# gem "graphql"
-# gem "graphiql-rails", group: :development
 gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
 gem 'i18n'
