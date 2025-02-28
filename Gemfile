@@ -24,7 +24,6 @@ gem "telegram-bot", "~> 0.15.5"
 gem 'nokogiri', "1.12.5"
 gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
-gem 'i18n'
 gem 'rails-i18n', '~> 7.0.0'
 gem 'skooma'
 gem 'dotenv'
