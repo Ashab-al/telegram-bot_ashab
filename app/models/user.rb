@@ -5,6 +5,8 @@ class User < ApplicationRecord
   DEFAULT_POINT=0
   DEFAULT_BONUS=5
 
+  COUNT_FOR_FULL_BATTERY = 5
+
   has_many :subscriptions, dependent: :destroy
   has_many :category, through: :subscriptions
 

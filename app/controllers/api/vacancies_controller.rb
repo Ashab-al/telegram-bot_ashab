@@ -12,11 +12,9 @@ class Api::VacanciesController < ApplicationController
     
     vacancy = Api::Vacancy::CreateVacancyInteractor.run(vacancy_params)
     
-    return render json: {success: false, message: errors_converter(vacancy.errors) }, 
-                          status: :unprocessable_entity if vacancy.errors.present?
+    return render json: {success: false, message: errors_converter(vacancy.errors) }, status: :unprocessable_entity if vacancy.errors.present?
 
-    TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
-    
+    Tg::Vacancy::SendVacancyToUsersInteractor.run(vacancy: vacancy.result)
     
     render json: vacancy.result, status: :ok
   end

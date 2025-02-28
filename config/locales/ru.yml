@@ -1,4 +1,9 @@
 ru:
+  error_in_interactor:
+    send_vacancy_to_users_interactor:
+      title: "Ошибка в интеракторе"
+      interactor_name: "Tg::Vacancy::SendVacancyToUsersInteractor"
+
   payment: 
     for_admin:
       success: "Оплата прошла успешно"
@@ -84,6 +89,8 @@ ru:
     new_user: "Новый пользователь в боте"
     username: "Имя пользователя"
     tg_username: "username"
+    platform_id: "platform_id"
+    bot_status: "Статус пользователя в боте"
     all_users_count: "Всего пользователей в боте"
     users_status_works: "Все у кого статус works"
     users_status_bot_blocked: "Все у кого статус bot_blocked"

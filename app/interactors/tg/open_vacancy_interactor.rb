@@ -2,6 +2,7 @@ class Tg::OpenVacancyInteractor < ActiveInteraction::Base
   object :user, presence: true
   integer :id, presence: true
 
+  OPEN_VACANCY_FOR_BUTTON = ->(message_id, vacancy_id) { "mid_#{message_id}_bdid_#{vacancy_id}" }
   OPEN_VACANCY_REGEX = Regexp.new('^mid_\d+_bdid_\d+') 
 
   REDUCE_BALANCE = 1

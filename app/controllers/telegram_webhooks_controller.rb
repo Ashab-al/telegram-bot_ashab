@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require_relative '../services/pagination_service'
 
 class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
@@ -193,7 +192,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       text: Tg::Common.erb_render(open_vacancy[:path_view], { open_vacancy: open_vacancy, user: user }), message_id: data_scan[0], chat_id: user.platform_id, parse_mode: 'HTML', 
       reply_markup: {
         inline_keyboard: [
-          [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')} #{open_vacancy[:low_points] ? I18n.t('smile.low_battery') : I18n.t('smile.full_battery')}", 
+          [{ text: Tg::Common.erb_render("button/by_points", { user: user }), 
             callback_data: "#{I18n.t('buttons.points')}" }],
           [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
             callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
@@ -263,10 +262,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
                                 reply_markup: {
                                   inline_keyboard: [
                                     [{ text: Tg::Common.erb_render("button/get_contact"), callback_data: "mid_#{message_id}_bdid_#{vacancy.id}" }],
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", 
-                                      callback_data: "#{I18n.t('buttons.points')}" }],
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-                                      callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: vacancy.id ) }]
+                                    [{ text: Tg::Common.erb_render("button/by_points", { user: user }), callback_data: "#{I18n.t('buttons.points')}" }],
+                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: vacancy.id ) }]
                                   ]
                                 })
 
