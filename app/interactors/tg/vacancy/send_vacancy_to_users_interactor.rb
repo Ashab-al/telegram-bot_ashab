@@ -4,7 +4,7 @@ class Tg::Vacancy::SendVacancyToUsersInteractor < ActiveInteraction::Base
   DELAY = 25.0
 
   def execute
-    users = Category.find_active_users_by_category_name(vacancy.category_title)
+    users = User.find_where_have_subscribe_to_category(vacancy.category_title)
     return errors.add(:users, :empty) unless users.present?
     
     users.each do | user |
