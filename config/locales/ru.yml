@@ -1,9 +1,11 @@
 ru:
+  error:
+    messages:
+      error_validate_vacancy: "Вакансия в черном списке"
   error_in_interactor:
     send_vacancy_to_users_interactor:
       title: "Ошибка в интеракторе"
       interactor_name: "Tg::Vacancy::SendVacancyToUsersInteractor"
-
   payment: 
     for_admin:
       success: "Оплата прошла успешно"
