@@ -72,6 +72,4 @@ Rails.application.configure do
   config.telegram_updates_controller.session_store = :memory_store
   # config.hosts.clear
   config.hosts << /^\w+(-\w+)*\.\w+(-\w+)*\.\w+$/
-
-  config.factory_bot.definition_file_paths = ["spec/factories"]
 end
