@@ -34,7 +34,7 @@ RSpec.describe "Vacancy", type: :request do
       }
     }
     before do
-      allow_any_instance_of(TelegramMessageService).to receive(:sending_vacancy_to_users)
+      allow_any_instance_of(Tg::Vacancy::SendVacancyToUsersInteractor).to receive(:run)
     end
 
     it "after create new vacancy, return correct data" do 

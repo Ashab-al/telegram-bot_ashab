@@ -7,22 +7,22 @@ RSpec.describe Tg::OpenVacancyInteractor do
     let(:vacancy) { create(:vacancy, category_title: category.name, category_id: category.id) }
     let(:user) { create(:user) }
 
-    describe "return status :out_of_points" do
+    describe "return status :warning" do
       let(:user) { create(:user, point: described_class::ZERO_BALANCE, bonus: described_class::ZERO_BALANCE) }
       let(:outcome) { described_class.run(user: user, id: vacancy.id) }
 
-      it 'correct :out_of_points' do
-        expect(outcome.result[:status]).to eq(:out_of_points)
+      it 'correct :warning' do
+        expect(outcome.result[:status]).to eq(:warning)
       end
     end
 
-    describe "return status :blacklist" do
+    describe "return status :warning" do
       let(:vacancy) { create(:vacancy, category_title: category.name, category_id: category.id) }
       let!(:blacklist_full) { create(:blacklist_full, contact_information: vacancy.platform_id) }
       let(:outcome) { described_class.run(user: user, id: vacancy.id) }
 
-      it 'correct :blacklist' do
-        expect(outcome.result[:status]).to eq(:blacklist)
+      it 'correct :warning' do
+        expect(outcome.result[:status]).to eq(:warning)
       end
     end
 

@@ -1,4 +1,7 @@
-RSpec.describe Buttons::WithAllCategories do 
+require 'rails_helper'
+
+
+RSpec.describe Buttons::WithAllCategoriesRenderer do 
   describe "#execute" do
     let(:categories_count) { rand(2..6) }
     let(:one) { 1 }
