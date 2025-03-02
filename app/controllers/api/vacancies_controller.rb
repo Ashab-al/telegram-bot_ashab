@@ -1,35 +1,17 @@
 class Api::VacanciesController < ApplicationController
-  skip_before_action :verify_authenticity_token
 
   def index
     render json: Vacancy.all, status: :ok
   end
 
   def create
-    blacklist = Api::Vacancy::BlackListCheckInteractor.run(blacklist_params)
-    return render json: {success: false, message: errors_converter(blacklist.errors) }, 
-                          status: :unprocessable_entity if blacklist.errors.present?
+    checker = Api::Vacancy::CheckAndCreateVacancyThenSendToUsersInteractor.run(vacancy_params)
+    return render json: {success: false, message: errors_converter(checker.errors) }, status: :unprocessable_entity if checker.errors.present?
     
-    vacancy = Api::Vacancy::CreateVacancyInteractor.run(vacancy_params)
-    
-    return render json: {success: false, message: errors_converter(vacancy.errors) }, 
-                          status: :unprocessable_entity if vacancy.errors.present?
-
-    TelegramMessageService.new.sending_vacancy_to_users(@vacancy)
-    
-    
-    render json: vacancy.result, status: :ok
+    render json: checker.result, status: :ok
   end
 
   private
-
-  def blacklist_params
-    {
-      platform_id: params[:platform_id], 
-      contact_information: params[:contact_information],
-      source: params[:source]
-    }
-  end
 
   def vacancy_params
     {

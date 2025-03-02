@@ -1,0 +1,23 @@
+ru:
+  active_interaction:
+    errors:
+      messages:
+        invalid: "недопустимое значение"
+        invalid_type: "не является допустимым %{type}"
+        missing: "обязательное поле"
+    types:
+      array: "массив"
+      boolean: "булево значение"
+      date: "дата"
+      date_time: "дата и время"
+      decimal: "десятичное число"
+      file: "файл"
+      float: "число с плавающей запятой"
+      hash: "хеш"
+      integer: "целое число"
+      interface: "интерфейс"
+      object: "объект"
+      record: "запись"
+      string: "строка"
+      symbol: "символ"
+      time: "время"

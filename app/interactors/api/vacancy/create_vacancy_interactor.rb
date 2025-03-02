@@ -3,7 +3,7 @@ class Api::Vacancy::CreateVacancyInteractor < ActiveInteraction::Base
   string :title, presence: true
   string :description, presence: true
   string :contact_information, presence: true
-  string :platform_id, presence: true
+  integer :platform_id, presence: true
   string :source, presence: true
   integer :category_id, presence: true
 
