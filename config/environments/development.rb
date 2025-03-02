@@ -71,5 +71,7 @@ Rails.application.configure do
   # Use memory store for bot sessions.
   config.telegram_updates_controller.session_store = :memory_store
   # config.hosts.clear
-  config.hosts << /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.[a-zA-Z0-9]+$/
+  config.hosts << /^\w+(-\w+)*\.\w+(-\w+)*\.\w+$/
+
+  config.factory_bot.definition_file_paths = ["spec/factories"]
 end
