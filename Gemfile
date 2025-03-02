@@ -7,21 +7,12 @@ ruby "3.1.6"
 gem "rails", "~> 7.0.2", ">= 7.0.2.3"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
-gem "sprockets-rails"
 
 gem "pg", "~> 1.5.4"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 5.6"
 
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-gem "importmap-rails"
-
-# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
-gem "turbo-rails"
-
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-gem "stimulus-rails"
  
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
@@ -30,20 +21,13 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 # My gems
 gem "telegram-bot", "~> 0.15.5"
-gem 'rest-client'
-gem 'yookassa'
-gem 'webpacker'
-gem "tailwindcss-rails", "~> 2.1"
-gem 'nokogiri'
-gem 'tomo'
-gem 'sidekiq'
-gem "graphql"
-gem "graphiql-rails", group: :development
+gem 'nokogiri', "1.12.5"
 gem 'active_interaction', '~> 5.3'
 gem 'telegram-bot-types'
-gem 'i18n'
+gem 'rails-i18n', '~> 7.0.0'
 gem 'skooma'
-
+gem 'dotenv'
+gem 'pagy'
 # end
 
 group :pry do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_25_145252) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_31_073832) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,8 +58,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_25_145252) do
     t.datetime "updated_at", null: false
     t.string "source"
     t.string "platform_id"
+    t.bigint "category_id", null: false
+    t.index ["category_id"], name: "index_vacancies_on_category_id"
   end
 
   add_foreign_key "subscriptions", "categories"
   add_foreign_key "subscriptions", "users"
+  add_foreign_key "vacancies", "categories"
 end

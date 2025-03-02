@@ -1,0 +1,4 @@
+<b><%= I18n.t('vacancy.total_vacancies.all_vacancies') %></b> <%= outcome[:vacancies_size] %> ⚡️
+<% outcome[:rows].each do | row | %>
+<%= row.second.positive? ? "<b>#{row.first}</b>" : row.first %>: <%= row.second %>
+<% end %>

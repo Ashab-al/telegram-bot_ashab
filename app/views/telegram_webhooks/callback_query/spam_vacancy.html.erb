@@ -1,0 +1,5 @@
+<% if outcome == :blacklisted %>
+<%= I18n.t('callback_query.spam_vacancy') %> 🚫😕
+<% else %>
+<%= I18n.t('callback_query.complaint') %> 🚀✅
+<% end%>
