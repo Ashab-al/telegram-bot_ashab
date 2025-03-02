@@ -15,7 +15,7 @@ RSpec.describe Api::VacanciesController, type: :controller do
 
   describe "POST #create" do 
     before do
-      allow_any_instance_of(TelegramMessageService).to receive(:sending_vacancy_to_users)
+      allow_any_instance_of(Tg::Vacancy::SendVacancyToUsersInteractor).to receive(:run)
     end
 
     it "returns status created" do 
