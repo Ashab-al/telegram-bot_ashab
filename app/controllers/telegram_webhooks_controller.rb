@@ -261,7 +261,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       bot.edit_message_text(text: Tg::Common.erb_render("pagination/vacancy", hash), message_id: message_id, chat_id: user.platform_id, parse_mode: 'HTML', 
                                 reply_markup: {
                                   inline_keyboard: [
-                                    [{ text: Tg::Common.erb_render("button/get_contact"), callback_data: Tg::OpenVacancyInteractor::OPEN_VACANCY_FOR_BUTTON.call(message_id, vacancy.id) }],
+                                    [ Buttons::ForOpenVacancyCallbackButtonRenderer.new(message_id, vacancy.id).call ],
                                     [{ text: Tg::Common.erb_render("button/by_points", { user: user }), callback_data: "#{I18n.t('buttons.points')}" }],
                                     [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: vacancy.id ) }]
                                   ]
