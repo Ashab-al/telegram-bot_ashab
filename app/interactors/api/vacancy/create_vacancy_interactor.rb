@@ -7,15 +7,14 @@ class Api::Vacancy::CreateVacancyInteractor < ActiveInteraction::Base
   string :source, presence: true
   integer :category_id, presence: true
 
-
   def execute
     vacancy = Vacancy.new(vacancy_params)
-    return errors.add(:vacancy, I18n.t("error.messages.error_validate_vacancy")) unless vacancy.save 
+    return errors.add(:vacancy, I18n.t('error.messages.error_validate_vacancy')) unless vacancy.save
 
     vacancy
   end
 
-  def vacancy_params 
+  def vacancy_params
     {
       category_title: category_title,
       title: title,

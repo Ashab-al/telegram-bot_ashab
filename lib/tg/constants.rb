@@ -1,3 +1,7 @@
-module Tg::Constants
-  SOURCE="tg_chat"
+# frozen_string_literal: true
+
+module Tg
+  module Constants
+    SOURCE = 'tg_chat'
+  end
 end

@@ -3,7 +3,7 @@ class Api::Category::CreateCategoryInteractor < ActiveInteraction::Base
 
   def execute
     category = Category.new(name: name)
-    return errors.add(:category, :invalid) unless category.save 
+    return errors.add(:category, :invalid) unless category.save
 
     category
   end

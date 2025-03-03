@@ -1,12 +1,11 @@
 class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction::Base
-  hash :chat, presence: true do 
+  hash :chat, presence: true do
     integer :id, presence: true
-    string :first_name, default: ""
-    string :username, default: ""
+    string :first_name, default: ''
+    string :username, default: ''
   end
   integer :point, default: User::DEFAULT_POINT
   integer :bonus, default: User::DEFAULT_BONUS
-
 
   def execute
     user = User.find_by(platform_id: chat[:id])
@@ -23,11 +22,11 @@ class Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor < ActiveInteraction
 
       Tg::SendAnalyticsInteractor.run(user: new_user)
 
-      return {user: new_user, status: :new_user}
+      return { user: new_user, status: :new_user }
     end
-    
-    user.update({:bot_status => User::BOT_STATUS_WORKS}) if user.bot_status != User::BOT_STATUS_WORKS
-    
-    {user: user, status: :old_user}
+
+    user.update({ bot_status: User::BOT_STATUS_WORKS }) if user.bot_status != User::BOT_STATUS_WORKS
+
+    { user: user, status: :old_user }
   end
 end

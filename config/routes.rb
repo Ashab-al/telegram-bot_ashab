@@ -1,10 +1,10 @@
 Rails.application.routes.draw do
   telegram_webhook TelegramWebhooksController
-  
+
   namespace :api do
     post 'users/mail_all', to: 'users#mail_all'
-    resources :users, only: [:index, :show] do 
-      member do 
+    resources :users, only: %i[index show] do
+      member do
         post 'set_status'
         post 'set_bonus'
       end
@@ -12,6 +12,6 @@ Rails.application.routes.draw do
 
     resources :categories
 
-    resources :vacancies, only: [:index, :create]
+    resources :vacancies, only: %i[index create]
   end
 end
