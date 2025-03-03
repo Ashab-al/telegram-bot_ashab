@@ -1,13 +1,17 @@
-class Api::VacanciesController < ApplicationController
+# frozen_string_literal: true
 
+class Api::VacanciesController < ApplicationController
   def index
     render json: Vacancy.all, status: :ok
   end
 
   def create
     checker = Api::Vacancy::CheckAndCreateVacancyThenSendToUsersInteractor.run(vacancy_params)
-    return render json: {success: false, message: errors_converter(checker.errors) }, status: :unprocessable_entity if checker.errors.present?
-    
+    if checker.errors.present?
+      return render json: { success: false, message: errors_converter(checker.errors) },
+                    status: :unprocessable_entity
+    end
+
     render json: checker.result, status: :ok
   end
 

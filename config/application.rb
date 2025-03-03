@@ -1,12 +1,12 @@
-require_relative "boot"
+require_relative 'boot'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups(
   assets: %i[development test],
-  pry:    %i[development test],
+  pry: %i[development test]
 ))
 # load pry for production console
 Bundler.require(:pry) if defined?(Rails::Console)
@@ -25,19 +25,17 @@ module TelegramBotApp
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-    config.factory_bot.definition_file_paths = ["spec/factories"]
-    
-    lib = root.join("lib")
+    config.factory_bot.definition_file_paths = ['spec/factories']
+
+    lib = root.join('lib')
 
     config.autoload_paths << lib
     config.eager_load_paths << lib
 
     Rails.autoloaders.main.ignore(
-      lib.join("assets"),
-      lib.join("tasks"),
-      lib.join("generators")
+      lib.join('assets'),
+      lib.join('tasks'),
+      lib.join('generators')
     )
-
-
   end
 end

@@ -4,7 +4,7 @@ class CreateVacancies < ActiveRecord::Migration[7.0]
       t.string :category_title
       t.string :title
       t.text :description
-      t.text :contact_information  
+      t.text :contact_information
 
       t.timestamps
     end

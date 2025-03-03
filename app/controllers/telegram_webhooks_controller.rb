@@ -4,10 +4,10 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   include Telegram::Bot::UpdatesController::MessageContext
   include Pagy::Backend
 
-  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES=[:send_category, :message]
+  IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES = %i[send_category message].freeze
 
-  CHAT_TYPE = "private"
-  
+  CHAT_TYPE = 'private'
+
   before_action :find_or_create_user_and_send_analytics, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
   before_action :subscribed_categories, except: IGNORED_FOR_USER_AND_SUBSCRIBED_CATEGORIES
 
@@ -33,9 +33,9 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   # "date":1698134713,"text":"asd"}
 
   # session[:user]
-  
+
   def start!(*)
-    respond_with :message, text: Tg::Common.erb_render("menu/instructions"), parse_mode: 'HTML'
+    respond_with :message, text: Tg::Common.erb_render('menu/instructions'), parse_mode: 'HTML'
     menu
   end
 
@@ -50,27 +50,28 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when t('buttons.menu.categories')
       send_category
     when t('buttons.menu.advertisement')
-      respond_with :message, text: Tg::Common.erb_render("menu/advertisement", { outcome: Tg::AdvertisementInteractor.run().result }), parse_mode: 'HTML'
+      respond_with :message,
+                   text: Tg::Common.erb_render('menu/advertisement', { outcome: Tg::AdvertisementInteractor.run.result }), parse_mode: 'HTML'
       menu
     when t('buttons.menu.help')
-      respond_with :message, text: Tg::Common.erb_render("menu/instructions"), parse_mode: 'HTML'
+      respond_with :message, text: Tg::Common.erb_render('menu/instructions'), parse_mode: 'HTML'
       menu
     when t('buttons.menu.points')
       view_tarifs
     else
-      respond_with :message, text: Tg::Common.erb_render("menu/vacancies_info", {outcome: Tg::TotalVacanciesInteractor.run().result}), parse_mode: 'HTML'
+      respond_with :message,
+                   text: Tg::Common.erb_render('menu/vacancies_info', { outcome: Tg::TotalVacanciesInteractor.run.result }), parse_mode: 'HTML'
 
-      respond_with :message, text: Tg::Common.erb_render("menu/default"), parse_mode: 'HTML', reply_markup: {
-        keyboard: [[Tg::Common.erb_render("menu/button/points"), Tg::Common.erb_render("menu/button/advertisement"), Tg::Common.erb_render("menu/button/help")], 
-                   [Tg::Common.erb_render("menu/button/categories")]], resize_keyboard: true, one_time_keyboard: true, selective: true 
+      respond_with :message, text: Tg::Common.erb_render('menu/default'), parse_mode: 'HTML', reply_markup: {
+        keyboard: [[Tg::Common.erb_render('menu/button/points'), Tg::Common.erb_render('menu/button/advertisement'), Tg::Common.erb_render('menu/button/help')],
+                   [Tg::Common.erb_render('menu/button/categories')]], resize_keyboard: true, one_time_keyboard: true, selective: true
       }
     end
   end
 
-
   def callback_query(data_callback)
-    return false unless chat["type"] == CHAT_TYPE
-      
+    return false unless chat['type'] == CHAT_TYPE
+
     case data_callback
     when t('callback_query.choice_categories')
       send_category
@@ -81,38 +82,41 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     when Tg::OpenVacancyInteractor::OPEN_VACANCY_REGEX
       view_vacancy data_callback.scan(/\d+/)
     when Tg::SpamVacancyInteractor::SPAM_VACANCY_REGEX
-      answer_callback_query Tg::Common.erb_render("callback_query/spam_vacancy", { outcome: Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result }), show_alert: true
+      answer_callback_query Tg::Common.erb_render('callback_query/spam_vacancy', { outcome: Tg::SpamVacancyInteractor.run(id: data_callback.scan(/\d+/)[1]).result }),
+                            show_alert: true
     when Buttons::WithAllCategoriesRenderer::PAGINATION_START_REGEX
       start_pagination_from data_callback.scan(/\d+/).first
     else
-      return subscribe_or_unsubscribe_and_edit_message data_callback
+      subscribe_or_unsubscribe_and_edit_message data_callback
     end
   end
 
-  def pre_checkout_query(data)  
+  def pre_checkout_query(data)
     bot.answer_pre_checkout_query(
-      pre_checkout_query_id: data["id"],
+      pre_checkout_query_id: data['id'],
       ok: true
     )
 
-    points = data["invoice_payload"].to_i
+    points = data['invoice_payload'].to_i
 
-    update_points = Tg::User::UpdatePointsInteractor.run(user: user, points: points, stars: data["total_amount"].to_i)    
-    
+    update_points = Tg::User::UpdatePointsInteractor.run(user: user, points: points,
+                                                         stars: data['total_amount'].to_i)
+
     if update_points.errors.present?
       bot.send_message(
-        text: Tg::Common.erb_render('pre_checkout_query/fail_payment'), 
+        text: Tg::Common.erb_render('pre_checkout_query/fail_payment'),
         message_id: data[:message_id],
-        chat_id: user.platform_id  
+        chat_id: user.platform_id
       )
-      
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(update_points.errors)}, #{payload}")
-      
+
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id,
+                       text: "#{errors_converter(update_points.errors)}, #{payload}")
+
       raise errors_converter(update_points.errors)
     end
 
     bot.send_message(
-      text: Tg::Common.erb_render('pre_checkout_query/success_payment', { points: points }), 
+      text: Tg::Common.erb_render('pre_checkout_query/success_payment', { points: points }),
       message_id: data[:message_id],
       chat_id: user.platform_id
     )
@@ -122,38 +126,42 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     menu
   end
 
-  def my_chat_member(data)
+  def my_chat_member(_data)
     outcome = Tg::User::StatusChangesForBlockInteractor.run(user: user)
 
-    if outcome.errors.present?
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+    return unless outcome.errors.present?
 
-      raise errors_converter(outcome.errors)
-    end
+    bot.send_message(chat_id: Rails.application.secrets.errors_chat_id,
+                     text: "#{errors_converter(outcome.errors)}, #{payload}")
+
+    raise errors_converter(outcome.errors)
   end
 
   private
 
   def subscribe_or_unsubscribe_and_edit_message(data_callback)
     outcome = Tg::User::UpdateSubscriptionWithCategoryInteractor.run(
-        user: user, 
-        category_name: data_callback,
-        subscribed_categories: subscribed_categories
-      )
+      user: user,
+      category_name: data_callback,
+      subscribed_categories: subscribed_categories
+    )
     if outcome.errors.present?
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id,
+                       text: "#{errors_converter(outcome.errors)}, #{payload}")
 
       raise errors_converter(outcome.errors)
     end
 
     answer_callback_query Tg::Common.erb_render("callback_query/#{outcome.result[:status]}"), show_alert: true
 
+    return unless outcome.result[:status]
+
     bot.edit_message_text(
-      text: Tg::Common.erb_render('choice_category'), 
-      message_id: session[:category_message_id], 
-      chat_id: user.platform_id, 
+      text: Tg::Common.erb_render('choice_category'),
+      message_id: session[:category_message_id],
+      chat_id: user.platform_id,
       reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
-    ) if outcome.result[:status] 
+    )
   end
 
   def start_pagination_from(page)
@@ -170,61 +178,73 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       send_vacancies(records, pagy.from)
 
       respond_with :message,
-        text: Tg::Common.erb_render("pagination/sended_vacancies", { pagy: pagy }), 
-        parse_mode: 'HTML',
-        reply_markup: {
-        inline_keyboard: [
-        [{ text: Tg::Common.erb_render("pagination/get_more_vacancies"), 
-          callback_data: "#{Buttons::WithAllCategoriesRenderer::VACANSIES_START}#{pagy.next || pagy.last}" }],
-        [{ text: "#{I18n.t('buttons.for_vacancy_message.by_points')}", callback_data: "#{I18n.t('buttons.points')}" }]
-        ]
-      }
-    
-      answer_callback_query Tg::Common.erb_render("pagination/sended_vacancies", { pagy: pagy }), show_alert: true if pagy.next.nil?
+                   text: Tg::Common.erb_render('pagination/sended_vacancies', { pagy: pagy }),
+                   parse_mode: 'HTML',
+                   reply_markup: {
+                     inline_keyboard: [
+                       [{ text: Tg::Common.erb_render('pagination/get_more_vacancies'),
+                          callback_data: "#{Buttons::WithAllCategoriesRenderer::VACANSIES_START}#{pagy.next || pagy.last}" }],
+                       [{ text: I18n.t('buttons.for_vacancy_message.by_points'),
+                          callback_data: I18n.t('buttons.points') }]
+                     ]
+                   }
+
+      if pagy.next.nil?
+        answer_callback_query Tg::Common.erb_render('pagination/sended_vacancies', { pagy: pagy }),
+                              show_alert: true
+      end
     end
   end
 
   def view_vacancy(data_scan)
     open_vacancy = Tg::OpenVacancyInteractor.run(user: user, id: data_scan[1]).result
 
-    answer_callback_query Tg::Common.erb_render(open_vacancy[:path_view], { open_vacancy: open_vacancy }), show_alert: true if open_vacancy[:status] == :warning
+    if open_vacancy[:status] == :warning
+      answer_callback_query Tg::Common.erb_render(open_vacancy[:path_view], { open_vacancy: open_vacancy }),
+                            show_alert: true
+    end
+    return unless open_vacancy[:status] == :open_vacancy
+
     bot.edit_message_text(
-      text: Tg::Common.erb_render(open_vacancy[:path_view], { open_vacancy: open_vacancy, user: user }), message_id: data_scan[0], chat_id: user.platform_id, parse_mode: 'HTML', 
+      text: Tg::Common.erb_render(open_vacancy[:path_view], { open_vacancy: open_vacancy, user: user }), message_id: data_scan[0], chat_id: user.platform_id, parse_mode: 'HTML',
       reply_markup: {
         inline_keyboard: [
-          [{ text: Tg::Common.erb_render("button/by_points", { user: user }), 
-            callback_data: "#{I18n.t('buttons.points')}" }],
-          [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", 
-            callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0], vacancy_id: data_scan[1] ) }]
+          [{ text: Tg::Common.erb_render('button/by_points', { user: user }),
+             callback_data: t('buttons.points') }],
+          [{ text: t('buttons.for_vacancy_message.spam'),
+             callback_data: t('buttons.for_vacancy_message.callback_data', message_id: data_scan[0],
+                                                                           vacancy_id: data_scan[1]) }]
         ]
       }
-    ) if open_vacancy[:status] == :open_vacancy
+    )
   end
 
   def send_invoice(tarif)
     bot.send_invoice(
-        chat_id: user.platform_id,
-        title: Tg::Common.erb_render('payment/title', { tarif: tarif }),
-        description: Tg::Common.erb_render('points/tarif_callback', { tarif: tarif }),
-        payload: tarif,
-        currency: Buttons::WithAllTarifsRenderer::CURRENCY,
-        prices: [
-          Telegram::Bot::Types::LabeledPrice.new(
-            label: Tg::Common.erb_render('points/tarif_callback', { tarif: tarif }), 
-            amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[tarif]
-          )
-        ]
-      )
+      chat_id: user.platform_id,
+      title: Tg::Common.erb_render('payment/title', { tarif: tarif }),
+      description: Tg::Common.erb_render('points/tarif_callback', { tarif: tarif }),
+      payload: tarif,
+      currency: Buttons::WithAllTarifsRenderer::CURRENCY,
+      prices: [
+        Telegram::Bot::Types::LabeledPrice.new(
+          label: Tg::Common.erb_render('points/tarif_callback', { tarif: tarif }),
+          amount: Buttons::WithAllTarifsRenderer::TARIFS_PRICES[tarif]
+        )
+      ]
+    )
   end
 
   def send_category
-    category_send_message = respond_with :message, text: Tg::Common.erb_render('choice_category'), reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
+    category_send_message = respond_with :message, text: Tg::Common.erb_render('choice_category'),
+                                                   reply_markup: Buttons::WithAllCategoriesRenderer.new(subscribed_categories).call
 
     session[:category_message_id] = category_send_message['result']['message_id']
   end
 
   def view_tarifs
-    respond_with(:message, text: Tg::Common.erb_render("points/description", { user: user }), reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })
+    respond_with(:message, text: Tg::Common.erb_render('points/description', { user: user }),
+                           reply_markup: { inline_keyboard: Buttons::WithAllTarifsRenderer.new.call })
   end
 
   def subscribed_categories
@@ -235,7 +255,8 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
     outcome = Tg::User::FindOrCreateWithUpdateByPlatformIdInteractor.run(chat: from)
 
     if outcome.errors.present?
-      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id, text: "#{errors_converter(outcome.errors)}, #{payload}")
+      bot.send_message(chat_id: Rails.application.secrets.errors_chat_id,
+                       text: "#{errors_converter(outcome.errors)}, #{payload}")
 
       raise errors_converter(outcome.errors)
     end
@@ -246,43 +267,43 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
   def user
     @user ||= find_or_create_user_and_send_analytics
   end
-  
 
   def send_vacancies(vacancies, start_number_vacancy)
     delay = Tg::Vacancy::VacanciesForTheWeekInteractor::DELAY / Pagy::DEFAULT[:limit]
-    
+
     number = start_number_vacancy
-    vacancies.each do | vacancy |
+    vacancies.each do |vacancy|
       hash = { vacancy: vacancy, number: number, user: user }
-     
-      message_id = respond_with(:message, text: Tg::Common.erb_render("pagination/vacancy", hash),
-                                parse_mode: 'HTML')['result']['message_id']
-      
-      bot.edit_message_text(text: Tg::Common.erb_render("pagination/vacancy", hash), message_id: message_id, chat_id: user.platform_id, parse_mode: 'HTML', 
-                                reply_markup: {
-                                  inline_keyboard: [
-                                    [ Buttons::ForOpenVacancyCallbackButtonRenderer.new(message_id, vacancy.id).call ],
-                                    [{ text: Tg::Common.erb_render("button/by_points", { user: user }), callback_data: "#{I18n.t('buttons.points')}" }],
-                                    [{ text: "#{I18n.t('buttons.for_vacancy_message.spam')}", callback_data: I18n.t('buttons.for_vacancy_message.callback_data', message_id: message_id, vacancy_id: vacancy.id ) }]
-                                  ]
-                                })
+
+      message_id = respond_with(:message, text: Tg::Common.erb_render('pagination/vacancy', hash),
+                                          parse_mode: 'HTML')['result']['message_id']
+
+      bot.edit_message_text(text: Tg::Common.erb_render('pagination/vacancy', hash), message_id: message_id, chat_id: user.platform_id, parse_mode: 'HTML',
+                            reply_markup: {
+                              inline_keyboard: [
+                                [Buttons::ForOpenVacancyCallbackButtonRenderer.new(message_id, vacancy.id).call],
+                                [{ text: Tg::Common.erb_render('button/by_points', { user: user }),
+                                   callback_data: t('buttons.points') }],
+                                [{ text: t('buttons.for_vacancy_message.spam'),
+                                   callback_data: t('buttons.for_vacancy_message.callback_data',
+                                                    message_id: message_id, vacancy_id: vacancy.id) }]
+                              ]
+                            })
 
       number += 1
       sleep(delay)
     end
   end
 
-
   def errors_converter(errors)
-    errors.reduce([]) do |errors_list, error| 
+    errors.reduce([]) do |errors_list, _error|
       errors_list << {
-        "attribute" => errors.first.attribute,
-        "name" => errors.first.type,
-        "options" => errors.first.options
-      } 
+        'attribute' => errors.first.attribute,
+        'name' => errors.first.type,
+        'options' => errors.first.options
+      }
     end
   end
-
 
   def send_error_in_admin_group(exception)
     bot.send_message(

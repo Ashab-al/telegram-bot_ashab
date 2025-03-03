@@ -1,12 +1,10 @@
 require 'rails_helper'
 
-
 RSpec.describe Tg::Category::FindSubscribeInteractor do
-  
-  describe "#execute" do 
+  describe '#execute' do
     let(:category) { create(:category) }
     let(:user) { create(:user) }
-    let!(:subscriptions) {user.subscriptions.create(category: category)}
+    let!(:subscriptions) { user.subscriptions.create(category: category) }
 
     let(:outcome) { described_class.run(user: user) }
 

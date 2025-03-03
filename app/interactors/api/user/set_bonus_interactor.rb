@@ -5,7 +5,7 @@ class Api::User::SetBonusInteractor < ActiveInteraction::Base
   def execute
     user = User.find_by(id: id)
     return errors.add(:user, :invalid) unless user
-    
+
     user.update(bonus: bonus)
     user
   end

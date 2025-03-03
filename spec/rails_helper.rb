@@ -9,7 +9,6 @@ require 'telegram/bot/rspec/integration/rails'
 require 'factory_bot_rails'
 require 'skooma'
 
-
 I18n.locale = :ru
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -69,6 +68,6 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.after { Telegram.bot.reset }
-  path_to_openapi = Rails.root.join("docs", "openapi.yml")
+  path_to_openapi = Rails.root.join('docs', 'openapi.yml')
   config.include Skooma::RSpec[path_to_openapi], type: :request
 end

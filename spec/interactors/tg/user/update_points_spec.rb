@@ -1,8 +1,7 @@
 require 'rails_helper'
 
-
-RSpec.describe Tg::User::UpdatePointsInteractor do 
-  describe "#execute" do 
+RSpec.describe Tg::User::UpdatePointsInteractor do
+  describe '#execute' do
     let(:user) { create(:user) }
     let(:points) { rand(1..10) }
     let(:stars) { points * 2 }
@@ -14,7 +13,7 @@ RSpec.describe Tg::User::UpdatePointsInteractor do
       allow(Tg::SendInfoAboutNewPaymentInteractor).to receive(:run)
     end
 
-    it "return correct update points" do 
+    it 'return correct update points' do
       expect(update.result.point).to eq(one + points)
     end
   end
