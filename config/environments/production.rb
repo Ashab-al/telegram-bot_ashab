@@ -28,7 +28,7 @@ Rails.application.configure do
   # config.assets.css_compressor = :sass
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
-  config.assets.compile = false
+  # config.assets.compile = false
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
@@ -92,11 +92,10 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Set application domain, to be able to run `rake telegram:bot:set_webhook`
-  routes.default_url_options = {host: 'ashabal.ru', protocol: 'https'}
+  routes.default_url_options = {host: ENV["HOST_DOMAIN"], protocol: 'https'}
 
-  config.hosts << "ashabal.ru"
-  config.hosts << "5.35.91.113"
-  config.hosts << "5.35.92.43"
+  config.hosts << ENV["HOST_DOMAIN"]
+  config.hosts << ENV["HOSTS_IPS"].split(",")
 
   # Configure session store for telegram bot.
   config.telegram_updates_controller.session_store = :file_store,

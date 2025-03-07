@@ -63,4 +63,5 @@ Rails.application.configure do
 
   # Stub clients before processing routes.rb.
   Telegram::Bot::ClientStub.stub_all!
+  config.factory_bot.definition_file_paths = ["spec/factories"]
 end
