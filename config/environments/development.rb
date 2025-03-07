@@ -57,7 +57,7 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   # Suppress logger output for asset requests.
-  config.assets.quiet = true
+  # config.assets.quiet = true
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
@@ -71,5 +71,5 @@ Rails.application.configure do
   # Use memory store for bot sessions.
   config.telegram_updates_controller.session_store = :memory_store
   # config.hosts.clear
-  config.hosts << /^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.[a-zA-Z0-9]+$/
+  config.hosts << /^\w+(-\w+)*\.\w+(-\w+)*\.\w+$/
 end
