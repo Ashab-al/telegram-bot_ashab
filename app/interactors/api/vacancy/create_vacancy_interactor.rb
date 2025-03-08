@@ -1,12 +1,10 @@
 class Api::Vacancy::CreateVacancyInteractor < ActiveInteraction::Base
-  string :category_title, presence: true
   string :title, presence: true
   string :description, presence: true
   string :contact_information, presence: true
   integer :platform_id, presence: true
   string :source, presence: true
   integer :category_id, presence: true
-
 
   def execute
     vacancy = Vacancy.new(vacancy_params)
@@ -17,7 +15,6 @@ class Api::Vacancy::CreateVacancyInteractor < ActiveInteraction::Base
 
   def vacancy_params 
     {
-      category_title: category_title,
       title: title,
       description: description,
       contact_information: contact_information,
