@@ -9,7 +9,7 @@ class Tg::Vacancy::VacanciesForTheWeekInteractor < ActiveInteraction::Base
 
     return {status: :subscribed_categories_empty} if subscribed_categories.empty?
 
-    vacancies = Vacancy.where(category_title: subscribed_categories.map(&:name)).
+    vacancies = Vacancy.where(category_id: subscribed_categories.map(&:id)).
     where.not(platform_id: Blacklist.pluck(:contact_information)).
     where(created_at: QUANTITY_DAYS.days.ago..Time.now).order(created_at: :asc)
 
