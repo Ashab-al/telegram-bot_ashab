@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_03_07_133029) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_09_141018) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,7 +50,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_07_133029) do
   end
 
   create_table "vacancies", force: :cascade do |t|
-    t.string "category_title"
     t.string "title"
     t.text "description"
     t.text "contact_information"
